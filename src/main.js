@@ -25,12 +25,5 @@ paintIcons();
 // 하단 탭바와 뒤로가기. app.js 가 화면을 다 만든 뒤여야 한다.
 initNav();
 
-// PWA 서비스 워커. 홈 화면에 추가 + 오프라인 캐싱을 켠다.
-// sw.js 가 없어도 등록만 조용히 실패하고 페이지는 그대로 뜬다.
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register(`${import.meta.env.BASE_URL}sw.js`)
-      .catch(() => {});
-  });
-}
+// 서비스 워커 등록은 vite-plugin-pwa 가 넣는다(injectRegister: 'auto').
+// 여기서 또 등록하면 두 벌이 서로를 덮어쓴다.

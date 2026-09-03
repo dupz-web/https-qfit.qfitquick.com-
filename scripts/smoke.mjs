@@ -47,6 +47,12 @@ const probe = await page.evaluate(() => {
         k, getComputedStyle(document.documentElement).getPropertyValue(k).trim(),
       ])
     ),
+    // 오디오 잠금 해제용 소리. 일부 폰은 진짜 <audio> 재생이 있어야 소리가 열린다.
+    // 없으면 앱은 멀쩡히 돌고 소리만 안 나는데, 콘솔에는 아무것도 안 뜬다.
+    unlockAudio: (() => {
+      const a = document.getElementById('test-audio');
+      return a ? { present: true, src: a.getAttribute('src'), ready: a.readyState } : { present: false };
+    })(),
     // 옛 이름이 새 토큰으로 이어져 있는지. 끊기면 CSS 절반이 색을 잃는다.
     aliasOk: (() => {
       const cs = getComputedStyle(document.documentElement);
@@ -68,6 +74,7 @@ for (const [k, v] of Object.entries(probe.tokens)) {
   console.log(`  ${k.padEnd(16)} ${JSON.stringify(v)}`);
 }
 console.log(`  옛 이름 연결      ${probe.aliasOk}`);
+console.log(`  잠금해제 오디오   ${JSON.stringify(probe.unlockAudio)}`);
 console.log(`  #app max-width    ${probe.appMaxWidth}  (380~640px 사이면 통과)`);
 console.log(`  body 배경         ${probe.bodyBg}...`);
 
@@ -89,6 +96,8 @@ const ok =
   probe.activeScreen === 'start-screen' &&
   probe.weekStripChildren === 7 &&
   probe.aliasOk &&
+  probe.unlockAudio.present &&
+  probe.unlockAudio.ready > 0 &&
   Object.values(probe.tokens).every((v) => v !== '') &&
   // 정확한 px 을 기대하지 않는다 — 디자인을 만질 때마다 검사가 거짓 실패한다.
   // 앱 상자가 폰 폭 안에서 제한되고 있다는 것만 본다.

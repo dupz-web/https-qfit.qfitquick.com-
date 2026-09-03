@@ -1,5 +1,6 @@
 import { ICON } from './ui/icons.js';
 import { openSheet, closeSheet } from './ui/sheet.js';
+import { getSupabase, hasStoredSession, isSupabaseReady } from './cloud/supabase.js';
 // Q-fit 앱 본체. legacy/index.html 의 IIFE 본문을 그대로 옮긴 것이다.
 // 화면별 분리는 라우터를 다시 짜는 단계에서 이어서 한다.
 
@@ -203,15 +204,8 @@ const gameScreen = document.getElementById('game-screen');
 const resultScreen = document.getElementById('result-screen');
 const app = document.getElementById('app');
 
-// ---------- SUPABASE (optional cloud sync — app works fine without it too) ----------
-const SUPABASE_URL = 'https://pdmjlleaheqyldhitkty.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_dUj4X1NhnU95YihrUzmkWg_kuJGy1eW';
-let supabaseClient = null;
-try{
- if(window.supabase && window.supabase.createClient){
- supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
- }
-}catch(e){ console.error('supabase init failed:', e); }
+// ---------- SUPABASE (선택 기능 — 로그인 없이도 앱은 완전히 돈다) ----------
+// 주소·키와 '언제 받을지'는 cloud/supabase.js 가 들고 있다.
 let currentUserId = null;
 
 const accountScreen = document.getElementById('account-screen');
@@ -852,9 +846,11 @@ function saveProfile(){
 }
 
 async function syncProfileToCloud(){
- if(!supabaseClient || !currentUserId) return;
+ if(!currentUserId) return;
+ const sb = await getSupabase();
+ if(!sb) return;
  try{
- await supabaseClient.from('profiles').upsert({
+ await sb.from('profiles').upsert({
  id: currentUserId,
  nickname: myNickname || '익명',
  total_completions: myProfile.totalCompletions || 0,
@@ -869,9 +865,11 @@ async function syncProfileToCloud(){
 }
 
 async function fetchProfileFromCloud(){
- if(!supabaseClient || !currentUserId) return null;
+ if(!currentUserId) return null;
+ const sb = await getSupabase();
+ if(!sb) return null;
  try{
- const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', currentUserId).maybeSingle();
+ const { data, error } = await sb.from('profiles').select('*').eq('id', currentUserId).maybeSingle();
  if(error) throw error;
  return data;
  }catch(e){ console.error('cloud fetch failed:', e); return null; }
@@ -906,7 +904,7 @@ function updateAccountUI(){
  if(backBtn){
  backBtn.textContent = '로그아웃';
  backBtn.onclick = async ()=>{
- try{ if(supabaseClient) await supabaseClient.auth.signOut(); }catch(e){}
+ try{ if(isSupabaseReady()){ const sb = await getSupabase(); await sb.auth.signOut(); } }catch(e){}
  currentUserId = null;
  updateAccountUI();
  showScreen(startScreen);
@@ -932,9 +930,13 @@ function updateAccountUI(){
 }
 
 async function checkSupabaseSession(){
- if(!supabaseClient) return;
+ // 로그인한 적이 없으면 SDK 를 받지도 않는다. 로그인은 선택 기능이라
+ // 안 쓰는 사람에게 120KB 를 받게 할 이유가 없다.
+ if(!hasStoredSession()) return;
+ const sb = await getSupabase();
+ if(!sb) return;
  try{
- const { data } = await supabaseClient.auth.getSession();
+ const { data } = await sb.auth.getSession();
  if(data && data.session && data.session.user){
  currentUserId = data.session.user.id;
  const row = await fetchProfileFromCloud();
@@ -1790,13 +1792,24 @@ function startWarmup(){
  if(errEl) errEl.style.display = 'none';
  if(warmupVideo){
  warmupVideo.style.display = '';
+ // preload="none" 이라 여기서 처음 받는다. 준비운동을 건너뛰는 사람은
+ // 8.6MB 를 아예 안 받게 된다 — 예전에는 화면을 열기만 해도 받았다.
+ if(warmupVideo.readyState === 0) warmupVideo.load();
  warmupVideo.currentTime = 0;
  const p = warmupVideo.play();
  if(p && p.catch){
  p.catch((err)=>{
+ // 재생 정책 거부(NotAllowedError)와 파일을 못 받은 것은 다른 일이다.
+ // 예전에는 둘 다 '영상을 불러오지 못했어요' 로 나와 원인을 감췄다.
+ const blocked = err && err.name === 'NotAllowedError';
  console.error('warmup video play() rejected:', err);
- if(errEl){ errEl.style.display = 'block'; }
- if(warmupVideo) warmupVideo.style.display = 'none';
+ if(errEl){
+ errEl.textContent = blocked
+ ? '화면을 한 번 눌러 주시면 준비운동 영상이 재생됩니다.'
+ : '준비운동 영상을 불러오지 못했습니다. 건너뛰고 시작해도 됩니다.';
+ errEl.style.display = 'block';
+ }
+ if(!blocked && warmupVideo) warmupVideo.style.display = 'none';
  });
  }
  }
@@ -2740,8 +2753,9 @@ try{
  const pw = document.getElementById('account-login-pw').value;
  errEl.textContent = '처리 중...';
  if(!email){ errEl.textContent = '이메일을 입력해주십시오.'; return; }
- if(!supabaseClient){ errEl.textContent = '연결에 실패했어요. 페이지를 새로고침해서 다시 시도해주십시오.'; return; }
- const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pw });
+ const sb = await getSupabase();
+ if(!sb){ errEl.textContent = '연결에 실패했어요. 페이지를 새로고침해서 다시 시도해주십시오.'; return; }
+ const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
  if(error) throw error;
  currentUserId = data.user.id;
  const row = await fetchProfileFromCloud();
@@ -2765,9 +2779,10 @@ try{
  errEl.style.color = '#ff6b5b';
  errEl.textContent = '처리 중...';
  if(!email){ errEl.textContent = '이메일을 입력해주십시오.'; return; }
- if(!supabaseClient){ errEl.textContent = '연결에 실패했어요. 페이지를 새로고침해서 다시 시도해주십시오.'; return; }
+ const sb = await getSupabase();
+ if(!sb){ errEl.textContent = '연결에 실패했어요. 페이지를 새로고침해서 다시 시도해주십시오.'; return; }
  if(pw.length < 6){ errEl.textContent = '비밀번호는 6자리 이상이어야 합니다.'; return; }
- const { data, error } = await supabaseClient.auth.signUp({ email, password: pw });
+ const { data, error } = await sb.auth.signUp({ email, password: pw });
  if(error) throw error;
  if(!data.session){
  errEl.style.color = 'var(--volt)';

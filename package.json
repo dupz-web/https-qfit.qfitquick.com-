@@ -17,12 +17,17 @@
     "coverage": "node scripts/coverage.mjs",
     "shot": "node scripts/shot.mjs",
     "nav": "node scripts/nav.mjs",
-    "sheet": "node scripts/sheet.mjs"
+    "sheet": "node scripts/sheet.mjs",
+    "weight": "node scripts/weight.mjs"
   },
   "devDependencies": {
     "eruda": "^3.4.3",
     "playwright": "^1.62.1",
     "selfsigned": "^5.5.0",
-    "vite": "^7.1.5"
+    "vite": "^7.1.5",
+    "vite-plugin-pwa": "^1.3.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.114.0"
   }
 }
