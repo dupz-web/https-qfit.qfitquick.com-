@@ -19,11 +19,14 @@ if (import.meta.env.DEV) {
 import './app.js';
 import { paintIcons } from './ui/icons.js';
 import { initNav } from './ui/nav.js';
+import { hideSplash } from './ui/splash.js';
 
 // data-icon 이 적힌 자리에 선 아이콘을 채운다
 paintIcons();
 // 하단 탭바와 뒤로가기. app.js 가 화면을 다 만든 뒤여야 한다.
 initNav();
+// 앱이 다 붙은 뒤에 스플래시를 걷는다
+hideSplash();
 
 // 서비스 워커 등록은 vite-plugin-pwa 가 넣는다(injectRegister: 'auto').
 // 여기서 또 등록하면 두 벌이 서로를 덮어쓴다.

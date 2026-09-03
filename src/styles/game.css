@@ -326,3 +326,19 @@
 
 /* 운동 중에는 지금 필요 없는 것을 치운다. */
 #app.workout-mode .lang-btn { display: none; }
+
+/* 미리보기 항목. 영상이 있는 동작은 눌러서 자세를 확인할 수 있다(FR-09). */
+.wod-preview-item { width: 100%; text-align: left; }
+.wpi-name { flex: 1; min-width: 0; }
+.wod-preview-item.has-clip { cursor: pointer; }
+/* 누를 수 있다는 것을 삼각형 하나로 알린다. 못 누르는 항목과 구별돼야 한다. */
+.wpi-play {
+  flex: none;
+  width: 0;
+  height: 0;
+  border-left: 9px solid var(--mint-text);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+}
+.wod-preview-item.has-clip:active { background: var(--surface-2); }
+#preview-start-btn { max-width: 340px; margin-top: var(--s-4); }

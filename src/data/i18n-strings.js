@@ -139,4 +139,6 @@ export const STATIC_UI = {
  cancelBtn: {ko:'취소', en:'Cancel', zh:'取消'},
  weekPartsLabel: {ko:'이번 주 운동 부위', en:'This week by body part', zh:'本周训练部位'},
  weekPartsEmpty: {ko:'이번 주 기록이 쌓이면 여기에 나옵니다', en:"It'll show up once you've trained this week", zh:'本周有记录后会显示在这里'},
+ watchClip: {ko:'동작 영상 보기', en:'Watch clip', zh:'查看动作视频'},
+ startNow: {ko:'지금 시작', en:'Start now', zh:'立即开始'},
 };

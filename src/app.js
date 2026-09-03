@@ -486,6 +486,7 @@ try{
  pauseBtn.addEventListener('click', ()=>{
  isPaused = true;
  pauseOverlay.classList.add('on');
+ try{ syncPauseClipBtn(); }catch(e){ console.error('syncPauseClipBtn failed:', e); }
  Sound.stopBGM();
  });
  }
@@ -1193,29 +1194,6 @@ try{
 
  // ---------- Video clip gallery (운동영상 모음) ----------
  let videoClipObserver = null;
- function openVideoLightbox(clip){
- const lightbox = document.getElementById('video-lightbox');
- const video = document.getElementById('video-lightbox-video');
- const label = document.getElementById('video-lightbox-label');
- const desc = document.getElementById('video-lightbox-desc');
- const tip = document.getElementById('video-lightbox-tip');
- const risk = document.getElementById('video-lightbox-risk');
- if(!lightbox || !video) return;
- video.src = clipUrl(clip.file);
- if(label) label.textContent = clip.label;
- if(desc) desc.textContent = clip.desc;
- if(tip) tip.textContent = clip.tip;
- if(risk) risk.textContent = clip.risk || '';
- lightbox.classList.add('on');
- const p = video.play();
- if(p && p.catch) p.catch(()=>{});
- }
- function closeVideoLightbox(){
- const lightbox = document.getElementById('video-lightbox');
- const video = document.getElementById('video-lightbox-video');
- if(video){ video.pause(); video.removeAttribute('src'); video.load(); }
- if(lightbox) lightbox.classList.remove('on');
- }
  const videoLightboxCloseBtn = document.getElementById('video-lightbox-close');
  if(videoLightboxCloseBtn) videoLightboxCloseBtn.addEventListener('click', closeVideoLightbox);
  const videoLightboxEl = document.getElementById('video-lightbox');
@@ -1816,24 +1794,107 @@ playBtn.addEventListener('click', ()=>{
  });
 });
 
+// 동작 영상 보기. 갤러리·미리보기·일시정지 세 곳에서 부르므로 모듈 수준에 둔다 —
+// try 블록 안에 있으면 엄격 모드에서 블록 스코프라 밖에서 못 부른다.
+ function openVideoLightbox(clip){
+ const lightbox = document.getElementById('video-lightbox');
+ const video = document.getElementById('video-lightbox-video');
+ const label = document.getElementById('video-lightbox-label');
+ const desc = document.getElementById('video-lightbox-desc');
+ const tip = document.getElementById('video-lightbox-tip');
+ const risk = document.getElementById('video-lightbox-risk');
+ if(!lightbox || !video) return;
+ video.src = clipUrl(clip.file);
+ if(label) label.textContent = clip.label;
+ if(desc) desc.textContent = clip.desc;
+ if(tip) tip.textContent = clip.tip;
+ if(risk) risk.textContent = clip.risk || '';
+ lightbox.classList.add('on');
+ const p = video.play();
+ if(p && p.catch) p.catch(()=>{});
+ }
+ function closeVideoLightbox(){
+ const lightbox = document.getElementById('video-lightbox');
+ const video = document.getElementById('video-lightbox-video');
+ if(video){ video.pause(); video.removeAttribute('src'); video.load(); }
+ if(lightbox) lightbox.classList.remove('on');
+ }
+
+// 운동 key 로 영상을 찾는다. 없으면 null — 부르는 쪽이 버튼을 안 만들면 된다.
+function clipForExercise(key){ return VIDEO_CLIPS.find(c => c.key === key) || null; }
+
+// 일시정지 중에 지금 동작의 영상을 볼 수 있게 한다.
+// 영상이 없는 동작에서는 버튼 자체를 감춘다 — 눌러도 아무 일이 없으면 고장으로 읽힌다.
+function syncPauseClipBtn(){
+ const btn = document.getElementById('pause-clip-btn');
+ if(!btn) return;
+ const m = missions[missionIndex];
+ const clip = m && clipForExercise(m.ex.key);
+ btn.hidden = !clip;
+ btn.onclick = clip ? (()=> openVideoLightbox(clip)) : null;
+}
+
+// 미리보기 자동 진행. 영상을 보는 동안은 멈춰야 해서 밖에서 잡을 수 있게 둔다.
+let previewTimer = null;
+let previewNext = null;
+
+function startPreviewTimer(nextFn){
+ previewNext = nextFn;
+ clearTimeout(previewTimer);
+ previewTimer = setTimeout(()=>{ previewTimer = null; if(previewNext) previewNext(); }, 3200);
+}
+
+// 영상을 여는 동안 멈춘다. 다시 흐르게 하는 것은 사람이 '시작' 을 누를 때다 —
+// 영상을 닫자마자 몇 초 뒤 자동으로 시작하면, 자세를 확인하려던 사람이
+// 준비도 안 된 채로 운동에 들어간다.
+function holdPreview(){
+ clearTimeout(previewTimer);
+ previewTimer = null;
+ const btn = document.getElementById('preview-start-btn');
+ if(btn) btn.hidden = false;
+}
+
+// 미리보기의 '지금 시작'. 영상을 보느라 자동 진행이 멈춘 뒤 사람이 직접 누른다.
+try{
+ const previewStartBtn = document.getElementById('preview-start-btn');
+ if(previewStartBtn) previewStartBtn.addEventListener('click', ()=>{
+ previewStartBtn.hidden = true;
+ if(previewNext) previewNext();
+ });
+}catch(e){ console.error('preview start button failed:', e); }
+
 function showWodPreview(nextFn){
  try{
+ const startBtn = document.getElementById('preview-start-btn');
+ if(startBtn) startBtn.hidden = true;   // 들어올 때마다 초기 상태로
  const list = document.getElementById('wod-preview-list');
  if(list){
  list.innerHTML = '';
  missions.forEach((m, i)=>{
- const item = document.createElement('div');
- item.className = 'wod-preview-item' + (m.isBoss ? ' boss' : '');
+ const clip = clipForExercise(m.ex.key);
+ // 영상이 있는 동작만 누를 수 있게 한다. 없는데 눌리면 아무 일도 안 일어나서
+ // 고장으로 읽힌다.
+ const item = document.createElement(clip ? 'button' : 'div');
+ item.className = 'wod-preview-item' + (m.isBoss ? ' boss' : '') + (clip ? ' has-clip' : '');
  item.style.animationDelay = (i * 0.04) + 's';
  item.innerHTML =
  '<span class="wpi-num">' + (i+1) + '</span>' +
- '<span class="wpi-icon">' + m.ex.icon + '</span>' +
- '<span>' + t(m.ex.label) + (m.isBoss ? t({ko:' (보스)', en:' (BOSS)', zh:'（BOSS）'}) : '') + '</span>';
+ '<span class="wpi-name">' + t(m.ex.label) + (m.isBoss ? t({ko:' (보스)', en:' (BOSS)', zh:'（BOSS）'}) : '') + '</span>' +
+ (clip ? '<span class="wpi-play" aria-hidden="true"></span>' : '');
+ if(clip){
+ item.type = 'button';
+ item.setAttribute('aria-label', t(m.ex.label) + ' ' + t(STATIC_UI.watchClip));
+ item.addEventListener('click', ()=>{
+ // 영상을 여는 순간 자동 진행을 멈춘다. 안 그러면 보는 도중에 운동이 시작된다.
+ holdPreview();
+ openVideoLightbox(clip);
+ });
+ }
  list.appendChild(item);
  });
  }
  showScreen(wodPreviewScreen);
- setTimeout(()=>{ nextFn(); }, 3200);
+ startPreviewTimer(nextFn);
  }catch(e){
  console.error('showWodPreview failed:', e);
  nextFn();
