@@ -16,7 +16,8 @@
     "contrast": "node scripts/contrast.mjs",
     "coverage": "node scripts/coverage.mjs",
     "shot": "node scripts/shot.mjs",
-    "nav": "node scripts/nav.mjs"
+    "nav": "node scripts/nav.mjs",
+    "sheet": "node scripts/sheet.mjs"
   },
   "devDependencies": {
     "eruda": "^3.4.3",

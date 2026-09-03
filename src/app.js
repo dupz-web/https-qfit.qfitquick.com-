@@ -1,4 +1,5 @@
 import { ICON } from './ui/icons.js';
+import { openSheet, closeSheet } from './ui/sheet.js';
 // Q-fit 앱 본체. legacy/index.html 의 IIFE 본문을 그대로 옮긴 것이다.
 // 화면별 분리는 라우터를 다시 짜는 단계에서 이어서 한다.
 
@@ -1440,8 +1441,10 @@ try{
  if(oneMinStartBtn && oneMinPanel){
  oneMinStartBtn.addEventListener('click', ()=>{
  Sound.unlock();
- oneMinStartBtn.style.display = 'none';
- oneMinPanel.style.display = 'flex';
+ // 예전에는 시작 버튼을 숨기고 패널을 그 자리에 펼쳤는데, 닫는 길이 없어서
+ // 한 번 열면 홈으로 되돌릴 수가 없었다. 시트는 배경을 누르거나 아래로
+ // 끌어내리거나 Esc 로 닫힌다.
+ openSheet(oneMinPanel, { title: '어떻게 시작할까요', from: oneMinStartBtn });
  });
  }
  const aiQuizBackBtn = document.getElementById('ai-quiz-back-btn');

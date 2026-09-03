@@ -566,3 +566,76 @@ body.immersive .tabbar {
 }
 .tab { position: relative; }
 .tab:active { background: var(--surface-2); }
+
+/* ── 바텀시트 ──────────────────────────────────────────
+   화면을 통째로 바꾸지 않고 아래에서 올라온다. 뒤가 비쳐 보이니까
+   "잠깐 고르는 중"이라는 게 읽히고, 취소하면 원래 자리로 돌아온다.
+
+   #app 에 transform 이 걸려 있어서 position:fixed 의 기준이 뷰포트가 아니라
+   #app 이 된다. 시트가 앱 상자 안에 딱 맞게 서는 건 그 덕이다 — 데스크톱에서
+   화면 전체 폭으로 늘어나지 않는다. */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--overlay);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur) linear;
+}
+.sheet-backdrop.on { opacity: 1; pointer-events: auto; }
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 31;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  max-height: 82%;
+  padding: var(--s-2) var(--s-5)
+    calc(var(--s-6) + env(safe-area-inset-bottom));
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  transform: translateY(100%);
+  transition: transform var(--dur) var(--ease-out);
+  /* 끌어내릴 때 브라우저가 세로 스크롤을 가져가지 않게 */
+  touch-action: pan-y;
+}
+.sheet.on { transform: none; }
+
+/* 손잡이. 끌어내려 닫을 수 있다는 것을 이것 하나로 알린다. */
+.sheet-grab {
+  align-self: center;
+  width: 36px;
+  height: 4px;
+  margin: var(--s-1) 0 var(--s-2);
+  border-radius: var(--r-full);
+  background: var(--line);
+}
+.sheet-title {
+  font-size: var(--t-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.sheet-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+/* 시트 안에서는 상자를 두르지 않는다 — 시트 자체가 이미 상자라 이중이 된다 */
+.sheet-body .one-min-panel,
+.sheet-body .mode-card {
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  animation: none;
+}
+.sheet-body .one-min-panel { gap: var(--s-4); }
+
+/* 시트가 열려 있으면 뒤 화면은 안 움직인다 */
+body.sheet-open .screen { overflow: hidden; }

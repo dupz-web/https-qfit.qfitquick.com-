@@ -9,6 +9,7 @@
 // 아바타가 비어 있는, 껍데기만 있는 화면이 뜬다.
 import { ICON } from './icons.js';
 import { showScreenById, isWorkoutRunning } from '../app.js';
+import { closeSheet, isSheetOpen } from './sheet.js';
 
 const TABS = [
   { id: 'start-screen', label: '홈', icon: 'home', via: null },
@@ -78,9 +79,19 @@ export function initNav() {
 
   document.addEventListener('screenchange', (e) => {
     const id = e.detail.id;
+    // 시트에서 무언가를 골라 화면이 넘어간 경우. 안 닫으면 시트가 뜬 채로
+    // 뒤 화면만 바뀌어서, 돌아왔을 때 이미 열려 있는 시트를 다시 만난다.
+    const hadSheet = isSheetOpen();
+    closeSheet({ keepHistory: true });
     paint(id);
     if (ignoreNextPush) {
       ignoreNextPush = false;
+      return;
+    }
+    if (hadSheet) {
+      // 시트가 쌓아 둔 칸을 새 화면으로 덮어쓴다. 새로 쌓으면 뒤로가기 한 번이
+      // 이미 사라진 시트로 돌아가는 헛걸음이 된다.
+      history.replaceState({ s: id }, '', '#' + id);
       return;
     }
     // 같은 화면을 두 번 쌓지 않는다 — 그러면 뒤로가기를 두 번 눌러야 한다
@@ -90,6 +101,14 @@ export function initNav() {
 
   window.addEventListener('popstate', (e) => {
     const current = document.querySelector('.screen.active')?.id;
+
+    // 시트가 열려 있으면 뒤로가기는 시트만 닫는다. 화면까지 같이 넘어가면
+    // 한 번 눌렀는데 두 단계가 되돌아간 것처럼 보인다.
+    if (isSheetOpen()) {
+      // 시트가 쌓아 둔 칸이 방금 빠진 것이다. 여기서 또 건드리지 않는다.
+      closeSheet({ keepHistory: true });
+      return;
+    }
 
     // 운동 중에 뒤로가기를 누르면 나가는 대신 일시정지한다.
     // 그냥 나가면 타이머는 계속 돌고 화면만 바뀌어서, 돌아왔을 때
