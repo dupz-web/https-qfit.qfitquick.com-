@@ -61,7 +61,7 @@ console.log(`app.js 안의 2갈래 분기(LANG==='ko' ? …) ${inline}곳 — �
 
 // 마크업 안의 한글 중 data-i18n 도 없고 사전에도 안 걸린 것.
 // 이런 자리는 언어를 바꿔도 한국어로 남는데, 오류가 안 나서 안 보인다.
-const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf-8');
+const html = fs.readFileSync(path.join(ROOT, 'app', 'index.html'), 'utf-8');
 const bare = [];
 // JS 가 부팅 때 값을 넣는 자리. 여기에 data-i18n 을 붙이면 사전 값이
 // 실제 값을 덮어써서, 기록이 잠깐 보였다가 '0일' 로 되돌아간다.

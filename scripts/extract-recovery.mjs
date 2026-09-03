@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf-8');
+const html = fs.readFileSync(path.join(ROOT, 'app', 'index.html'), 'utf-8');
 const block = html.slice(
   html.indexOf('id="recovery-screen"'),
   html.indexOf('id="video-gallery-screen"')

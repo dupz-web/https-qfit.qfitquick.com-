@@ -4,7 +4,14 @@
 //  · 4일 경계를 정확히 지킬 것 (3일째에 오면 재촉이고, 5일째면 늦다)
 //  · 같은 공백에 두 번 알리지 말 것 (쌓이는 순간 사람들은 알림을 끈다)
 // 이건 화면으로 확인할 수 없어서 — 나흘을 기다릴 수는 없다 — 규칙을 직접 잰다.
+import path from 'node:path';
 import { launch, context, DEFAULT_URL } from './_browser.mjs';
+
+// Vite 루트가 app/ 이라 src/ 는 루트 밖이고, 그래서 /src/... 주소로는 안 나온다.
+// dev 서버는 루트 밖 파일을 /@fs/<절대경로> 로 준다(server.fs.allow 가 허용한다).
+const MOD = '/@fs/' + path
+  .resolve(import.meta.dirname, '..', 'src', 'notify', 'reminder.js')
+  .split(path.sep).join('/');
 
 const browser = await launch();
 const page = await (await context(browser)).newPage();
@@ -13,8 +20,8 @@ await page.waitForTimeout(600);
 
 const DAY = 86400000;
 
-const r = await page.evaluate(async (DAY) => {
-  const m = await import('/src/notify/reminder.js');
+const r = await page.evaluate(async ([DAY, MOD]) => {
+  const m = await import(/* @vite-ignore */ MOD);
   const now = Date.now();
   const clear = () => {
     try { localStorage.removeItem('qfit_reminder_sent_v1'); } catch {}
@@ -52,7 +59,7 @@ const r = await page.evaluate(async (DAY) => {
 
   clear();
   return out;
-}, DAY);
+}, [DAY, MOD]);
 
 const EXPECT = {
   gapDays: 4,

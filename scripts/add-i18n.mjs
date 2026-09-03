@@ -105,7 +105,7 @@ console.log(`사전에 ${added}개 추가`);
 
 // ── 2. 마크업에 이름표를 붙인다 ──────────────────────────
 const ko2key = new Map(ENTRIES.map(([k, ko]) => [ko, k]));
-const file = path.join(ROOT, 'index.html');
+const file = path.join(ROOT, 'app', 'index.html');
 let html = fs.readFileSync(file, 'utf-8');
 let tagged = 0;
 html = html.replace(

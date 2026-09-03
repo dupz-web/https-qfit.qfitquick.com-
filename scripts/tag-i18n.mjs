@@ -16,7 +16,7 @@ for (const m of dict.matchAll(/^\s*(\w+):\s*\{\s*ko:\s*'([^']*)'/gm)) {
 }
 console.log(`사전 항목 ${ko2key.size}개`);
 
-const file = path.join(ROOT, 'index.html');
+const file = path.join(ROOT, 'app', 'index.html');
 let html = fs.readFileSync(file, 'utf-8');
 
 let tagged = 0;

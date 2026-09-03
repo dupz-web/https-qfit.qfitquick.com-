@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf-8');
+const html = fs.readFileSync(path.join(ROOT, 'app', 'index.html'), 'utf-8');
 const js = fs.readFileSync(path.join(ROOT, 'src', 'app.js'), 'utf-8');
 
 const cssFiles = fs
