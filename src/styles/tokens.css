@@ -1,10 +1,142 @@
+/* 디자인 토큰 한 벌.
+ *
+ * 여기 없는 값을 컴포넌트에 직접 적지 말 것. 예전에 그렇게 해서 색이 46종,
+ * 글자 크기가 27종(9~14px 을 0.5px 단위로)까지 늘어났고, 그러면 "이게 저것과
+ * 같은 회색인가"를 매번 눈으로 판단하게 된다.
+ *
+ * 대비는 감으로 고르지 않는다 — `npm run contrast` 가 조합마다 숫자로 잰다.
+ * 예전 --muted 는 카드 위에서 3.4:1 이었는데, 하필 그 조합이 설명·힌트 41곳에
+ * 10~11.5px 로 쓰이고 있었다. 초보자에게 제일 필요한 안내가 제일 안 보였다.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* ── 글자 크기 ────────────────────────────────────────
+   * rem 이라 OS 글꼴 크기 설정을 따라간다. px 로 박으면 눈이 어두운 사람이
+   * 시스템에서 글자를 키워도 이 앱만 그대로다.
+   * 하한은 13px. 그 아래는 이 표에 없다 — 없어야 안 쓰게 된다. */
+  --t-xs: 0.8125rem;   /* 13px — 하한. 라벨·캡션 */
+  --t-sm: 0.875rem;    /* 14px */
+  --t-md: 0.9375rem;   /* 15px — 본문 기준선 */
+  --t-lg: 1.0625rem;   /* 17px */
+  --t-xl: 1.375rem;    /* 22px */
+  --t-2xl: 1.75rem;    /* 28px */
+  --t-display: clamp(2rem, 9vw, 2.75rem);   /* 화면 제목 */
+  --t-hero: clamp(2.75rem, 14vw, 4rem);     /* 로고·결과 점수 */
+  --t-huge: clamp(5rem, 30vw, 9rem);        /* 카운트다운 숫자 */
+
+  /* ── 여백 (4px 격자) ──────────────────────────────── */
+  --s-1: 4px;  --s-2: 8px;   --s-3: 12px;  --s-4: 16px;
+  --s-5: 20px; --s-6: 24px;  --s-8: 32px;  --s-10: 40px;
+
+  /* ── 모서리 ──────────────────────────────────────── */
+  --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-full: 999px;
+
+  /* ── 터치 타겟 하한 ────────────────────────────────
+   * Apple 44pt / Google 48dp. 지금 홈 메뉴 버튼이 25px, 배너 닫기가 17×20px 이라
+   * 손이 크거나 운동 직후 땀 찬 손가락으로는 못 누른다. */
+  --tap: 44px;
+
+  /* ── 움직임 ──────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-pop: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --dur-fast: 140ms;
+  --dur: 220ms;
+  --dur-slow: 400ms;
+
+  /* 화면 진동 연출용 오프셋. 색이 아니라 상태값이다. */
+  --shake: 0px;
+}
+
+/* ===== 라이트 ===== */
 :root{
-  --bg:#070503;
-  --fire:#ff3d00;
-  --volt:#ffe600;
-  --ink:#f5f0e8;
-  --muted:#8a7f74;
-  --card:#1a1512;
-  --line:#2c2420;
-  --shake:0px;
+  --bg: #eef2f6;
+  --surface: #ffffff;
+  --surface-2: #e3e9ef;
+  --line: #ccd5dd;
+
+  --text: #101619;
+  --text-dim: #4d5c66;
+
+  /* 노랑은 밝은 바탕에서 글자로 못 쓴다(#ffd60a on #eef2f6 = 1.25:1).
+   * 그래서 '칠하는 색'과 '글자로 쓰는 색'을 나눈다. 라이트에서 노랑 글자를
+   * 쓰고 싶으면 --accent-text 를, 노랑으로 칠하고 싶으면 --accent 에
+   * --on-accent 를 얹는다. */
+  --accent: #ffd60a;
+  --on-accent: #16130a;
+  --accent-text: #8a6200;
+
+  --hot: #c3350f;
+  --on-hot: #ffffff;
+  --cool: #0a7d72;
+  --on-cool: #ffffff;
+  --danger: #b32720;
+  --success: #14663f;
+}
+
+/* ===== 다크 =====
+ * 시스템이 다크일 때. 손으로 라이트를 고른 경우([data-theme="light"])는 빼둔다. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]){
+    --bg: #0a0b0d;
+    --surface: #15171b;
+    --surface-2: #1f232a;
+    --line: #2c313a;
+    --text: #f1f3f5;
+    --text-dim: #98a2ad;
+    --accent: #ffd60a;
+    --on-accent: #16130a;
+    --accent-text: #ffd60a;
+    --hot: #ff5a2b;
+    --on-hot: #1a0a03;
+    --cool: #2ed3b7;
+    --on-cool: #04211d;
+    --danger: #ff7a6b;
+    --success: #4ade80;
+  }
+}
+
+/* 손으로 고른 다크가 시스템 설정을 이긴다 */
+:root[data-theme="dark"]{
+  --bg: #0a0b0d;
+  --surface: #15171b;
+  --surface-2: #1f232a;
+  --line: #2c313a;
+  --text: #f1f3f5;
+  --text-dim: #98a2ad;
+  --accent: #ffd60a;
+  --on-accent: #16130a;
+  --accent-text: #ffd60a;
+  --hot: #ff5a2b;
+  --on-hot: #1a0a03;
+  --cool: #2ed3b7;
+  --on-cool: #04211d;
+  --danger: #ff7a6b;
+  --success: #4ade80;
+}
+
+/* 테마와 무관한 것 */
+:root{
+  --overlay: rgba(8, 12, 16, 0.62);
+  --shadow: 0 6px 20px rgba(16, 30, 40, 0.16);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]){ --shadow: 0 6px 20px rgba(0, 0, 0, 0.5); }
+}
+:root[data-theme="dark"]{ --shadow: 0 6px 20px rgba(0, 0, 0, 0.5); }
+
+/* ── 옛 이름 (별칭) ─────────────────────────────────────
+ * CSS 전반이 아직 이 이름들을 쓴다. 한 번에 갈면 전부 깨지므로 여기로 이어 두고
+ * 컴포넌트를 하나씩 옮긴다. 다 옮기고 나면 이 블록을 지운다.
+ *
+ * 이어 두는 것만으로 얻는 게 있다: 예전에는 --card 가 거의 검정(#1a1512)인데
+ * body 만 하늘색이라 한 화면에 검은 카드와 흰 카드가 섞여 있었다(리스킨이
+ * 중간에 멈춘 상태). 이제 둘 다 --surface 를 보므로 테마가 무엇이든 한쪽으로 맞는다. */
+:root{
+  --card: var(--surface);
+  --ink: var(--text);
+  --muted: var(--text-dim);
+  --fire: var(--hot);
+  --volt: var(--accent);
 }

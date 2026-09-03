@@ -12,7 +12,9 @@
     "smoke": "node scripts/smoke.mjs",
     "flow": "node scripts/flow.mjs",
     "compare": "node scripts/compare.mjs",
-    "phone": "node scripts/phone.mjs"
+    "phone": "node scripts/phone.mjs",
+    "contrast": "node scripts/contrast.mjs",
+    "coverage": "node scripts/coverage.mjs"
   },
   "devDependencies": {
     "eruda": "^3.4.3",
