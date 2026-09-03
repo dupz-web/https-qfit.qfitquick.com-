@@ -35,6 +35,12 @@ button, .mute-btn, .lang-btn, .week-day, .cal-day, .eyebrow, .hud {
   -webkit-user-select: none;
 }
 
+/* hidden 속성이 항상 이기게 한다.
+   브라우저 기본은 [hidden]{display:none} 인데 특이도가 0,1,0 이라
+   .records-body{display:flex} 같은 클래스 규칙이 나중에 오면 그냥 진다 —
+   요소를 숨겼다고 생각했는데 그대로 보이고, 그 사실이 조용하다. */
+[hidden] { display: none !important; }
+
 h1, h2, h3, h4, p, ul, ol { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 img { max-width: 100%; display: block; }

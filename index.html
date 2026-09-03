@@ -285,7 +285,7 @@
 
  <div class="setup-card">
  <div class="section-label" data-i18n="myInfo">내 정보 (선택)</div>
- <input type="text" id="nickname-input" class="nickname-input" maxlength="10" placeholder="닉네임 (선택)">
+ <input type="text" id="nickname-input" class="nickname-input" maxlength="20" placeholder="닉네임 (선택)">
  <div class="nickname-hint" data-i18n="nickHint">결과 공유할 때 이 이름으로 표시됩니다</div>
 
  <div class="weight-input-row">
@@ -318,6 +318,14 @@
  <div class="eyebrow">MY RECORDS</div>
  <h2 class="lb-title" data-i18n="recordsBtn">내 기록</h2>
 
+ <!-- 기록이 하나도 없을 때. 통계 여섯 칸과 캘린더를 감추고 이것만 남긴다 —
+      0 을 여섯 번 보여주는 화면은 "아직 아무것도 없다"를 여섯 번 말하는 것이다. -->
+ <div class="empty-state" id="records-empty" hidden>
+ <p class="empty-line" data-i18n="recordsEmpty">아직 기록이 없어요 — 1분만 하면 여기에 첫 칸이 채워집니다</p>
+ <button class="primary" id="records-empty-start" data-i18n="startCta">1분 시작</button>
+ </div>
+
+ <div class="records-body" id="records-body">
  <div class="records-grid">
  <div class="record-box">
  <div class="record-val" id="rec-best-streak">0일</div>
@@ -392,6 +400,8 @@
  <div class="lb-list" id="history-list">
  <div class="lb-empty" data-i18n="noSessions">아직 완주 기록이 없습니다.</div>
  </div>
+ </div>
+
  <button class="btn-restart" id="records-back-btn" data-i18n="lbBackBtn">닫기</button>
  </div>
 

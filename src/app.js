@@ -27,7 +27,7 @@ let LANG = (function(){
 let vibrationEnabled = (function(){
  try{ return localStorage.getItem('wodrush_vibration_v1') !== 'off'; }catch(e){ return true; }
 })();
-function t(obj){
+export function t(obj){
  if(obj == null) return '';
  if(typeof obj === 'string') return obj;
  return obj[LANG] || obj.ko || '';
@@ -51,6 +51,7 @@ function setLang(lang){
  if(typeof updateBestBox === 'function') updateBestBox();
  const lb = document.getElementById('lang-btn');
  if(lb) lb.textContent = LANG_LABEL[nextLang()];
+ document.dispatchEvent(new CustomEvent('qfit:lang', { detail: { lang: LANG } }));
 }
 
 
@@ -1103,6 +1104,16 @@ function renderCalendar(){
 }
 
 function renderRecordsScreen(){
+ // 기록이 하나도 없으면 통계 여섯 칸과 캘린더를 통째로 감춘다.
+ // 0 을 여섯 번 늘어놓는 것은 "아직 아무것도 없다"를 여섯 번 말하는 것이고,
+ // 처음 온 사람에게는 그게 실패한 화면처럼 보인다.
+ const hasAny = (myProfile.totalCompletions || 0) > 0;
+ const emptyBox = document.getElementById('records-empty');
+ const bodyBox = document.getElementById('records-body');
+ if(emptyBox) emptyBox.hidden = hasAny;
+ if(bodyBox) bodyBox.hidden = !hasAny;
+ if(!hasAny) return;   // 감춘 것을 그릴 이유가 없다
+
  // 부위 비중도 여기서 같이 그린다. 화면을 켜기만 하고 렌더를 건너뛰면
  // 빈 자리가 남는데, 그건 '이번 주 운동을 안 했다'로 읽힌다.
  try{ renderBodyparts(); }catch(e){ console.error('renderBodyparts failed:', e); }
@@ -1438,6 +1449,16 @@ function recordCompletion(){
 }
 
 // ---------- SETUP: coach + exercise pickers ----------
+// 고른 동작이 없으면 시작할 수 없다. 다만 흐리게만 두지 않고 라벨이
+// 무엇을 해야 하는지 말한다 — 못 누르는 이유가 버튼 안에 있어야 한다.
+function syncPlayBtn(){
+ const btn = document.getElementById('play-btn');
+ if(!btn) return;
+ const none = selectedExKeys.size === 0;
+ btn.disabled = none;
+ btn.textContent = none ? t(STATIC_UI.pickAtLeastOne) : t(STATIC_UI.startWod);
+}
+
 function renderExGrid(){
  exGrid.innerHTML = '';
  const searchEl = document.getElementById('ex-search-input');
@@ -1445,24 +1466,32 @@ function renderExGrid(){
  const ordered = EXERCISES.slice().sort((a,b)=> (a.pro?1:0) - (b.pro?1:0));
  const filtered = term ? ordered.filter(ex=> t(ex.label).toLowerCase().includes(term)) : ordered;
  if(term && filtered.length === 0){
+ // 검색어를 그대로 인용한다 — '결과 없음' 만 뜨면 자기가 뭘 쳤는지 다시
+ // 확인해야 하고, 오타였다는 것도 그때 알게 된다.
  const empty = document.createElement('div');
  empty.className = 'search-empty';
- empty.textContent = t({ko:'검색 결과가 없습니다', en:'No matching exercises', zh:'没有匹配的动作'});
+ empty.innerHTML = t(STATIC_UI.searchEmptyQuoted).replace('%s', term.replace(/[<>&]/g, '')) +
+ ' <button type="button" class="clear-filter" id="ex-clear-filter">' + t(STATIC_UI.clearFilter) + '</button>';
  exGrid.appendChild(empty);
+ const clearBtn = empty.querySelector('#ex-clear-filter');
+ if(clearBtn) clearBtn.addEventListener('click', ()=>{
+ if(searchEl){ searchEl.value = ''; }
+ renderExGrid();
+ });
  }
  filtered.forEach(ex=>{
  const div = document.createElement('div');
  const checked = selectedExKeys.has(ex.key);
  div.className = 'ex-chip' + (checked ? ' checked' : '') + (ex.pro ? ' pro' : '');
- div.innerHTML = '<span class="box"></span><span class="name">'+ex.icon+' '+t(ex.label)+'</span>';
+ div.innerHTML = '<span class="box"></span><span class="name">'+t(ex.label)+'</span>';
  div.addEventListener('click', ()=>{
- if(selectedExKeys.has(ex.key)){
- if(selectedExKeys.size > 1) selectedExKeys.delete(ex.key);
- } else {
- selectedExKeys.add(ex.key);
- }
+ // 마지막 하나를 못 지우게 막지 않는다. 눌러도 아무 일이 없으면 고장으로
+ // 읽히고, 왜 안 되는지도 알 수 없다. 대신 0개일 때 시작 버튼이 말한다.
+ if(selectedExKeys.has(ex.key)) selectedExKeys.delete(ex.key);
+ else selectedExKeys.add(ex.key);
  renderExGrid();
  renderGroupRow();
+ syncPlayBtn();
  });
  exGrid.appendChild(div);
  });
@@ -1494,6 +1523,7 @@ function pickModeAndGo(keys){
  renderExGrid();
  renderGroupRow();
  showScreen(setupScreen);
+ try{ syncPlayBtn(); }catch(e){}
 }
 try{
  const modeRandomBtn = document.getElementById('mode-random');
@@ -1592,6 +1622,7 @@ try{
  renderExGrid();
  renderGroupRow();
  showScreen(setupScreen);
+ try{ syncPlayBtn(); }catch(e){}
  }
 
  document.querySelectorAll('#quiz-step-0 .quiz-btn').forEach(btn=>{
@@ -1648,6 +1679,7 @@ function renderRoutinesList(){
  renderExGrid();
  renderGroupRow();
  showScreen(setupScreen);
+ try{ syncPlayBtn(); }catch(e){}
  });
  row.querySelector('.share-btn').addEventListener('click', async ()=>{
  const encoded = encodeRoutine({ name:r.name, keys:r.keys, duration:r.duration });
@@ -1709,6 +1741,7 @@ try{
  b.classList.toggle('active', b.dataset.preset === selectedDurationPreset);
  });
  showScreen(setupScreen);
+ try{ syncPlayBtn(); }catch(e){}
  const name = decoded.name ? (' "' + decoded.name + '"') : '';
  alert(t({ko:'친구가 공유한 루틴' + name + '을 불러왔어요!', en:'Loaded a shared routine' + name + '!', zh:'已载入好友分享的方案' + name + '！'}));
  }
@@ -1722,6 +1755,7 @@ try{
  if(manualConfirmBtn) manualConfirmBtn.addEventListener('click', ()=>{
  Sound.unlock();
  showScreen(setupScreen);
+ try{ syncPlayBtn(); }catch(e){}
  });
  if(manualBackBtn) manualBackBtn.addEventListener('click', ()=> showScreen(startScreen));
 }catch(e){ console.error('manual select buttons failed:', e); }
@@ -1812,13 +1846,23 @@ try{
  if(moreSettingsBtn) moreSettingsBtn.addEventListener('click', ()=> showScreen(settingsScreen));
 }catch(e){ console.error('more settings button failed:', e); }
 
+// 기록이 없을 때의 '1분 시작'. 화면을 옮기고 시트를 여는 것까지 홈과 같아야
+// 하므로 홈의 버튼을 그대로 누른다 — 여기서 따로 열면 두 벌이 된다.
+try{
+ const emptyStart = document.getElementById('records-empty-start');
+ if(emptyStart) emptyStart.addEventListener('click', ()=>{
+ showScreen(startScreen);
+ setTimeout(()=> document.getElementById('one-min-start-btn')?.click(), 60);
+ });
+}catch(e){ console.error('records empty start failed:', e); }
+
 setupBackBtn.addEventListener('click', ()=> showScreen(startScreen));
 
 playBtn.addEventListener('touchstart', ()=> Sound.unlock(), {passive:true});
 playBtn.addEventListener('click', ()=>{
  Sound.unlock();
  flash('#ffe600');
- const nick = nicknameInput.value.trim().slice(0, 10);
+ const nick = nicknameInput.value.trim().slice(0, 20);
  if(nick){ myNickname = nick; saveNickname(nick); }
  saveWeightKg(currentWeightKg());
  saveSetupPrefs();

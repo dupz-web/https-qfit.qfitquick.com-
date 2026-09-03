@@ -17,14 +17,20 @@ if (import.meta.env.DEV) {
 }
 
 import './app.js';
+import { t } from './app.js';
 import { paintIcons } from './ui/icons.js';
 import { initNav } from './ui/nav.js';
 import { hideSplash } from './ui/splash.js';
+import { initHeaders } from './ui/header.js';
+import { ICON } from './ui/icons.js';
+import { STATIC_UI } from './data/i18n-strings.js';
 
 // data-icon 이 적힌 자리에 선 아이콘을 채운다
 paintIcons();
 // 하단 탭바와 뒤로가기. app.js 가 화면을 다 만든 뒤여야 한다.
 initNav();
+// 하위 화면의 머리(뒤로 + 제목). app.js 가 화면을 다 만든 뒤여야 한다.
+initHeaders({ STATIC_UI, t, ICON });
 // 앱이 다 붙은 뒤에 스플래시를 걷는다
 hideSplash();
 

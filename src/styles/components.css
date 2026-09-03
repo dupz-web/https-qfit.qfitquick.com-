@@ -651,3 +651,66 @@ body.sheet-open .screen { overflow: hidden; }
   line-height: 1.4;
 }
 .range-note:empty { display: none; }
+
+/* ── 빈 상태 ───────────────────────────────────────────
+   자료가 없을 때 0 을 여러 번 늘어놓지 않는다. 그건 "아직 아무것도 없다"를
+   숫자 개수만큼 반복하는 것이고, 처음 온 사람에게는 실패한 화면처럼 보인다.
+   대신 무엇을 하면 채워지는지 한 문장으로 말하고 그 행동을 붙인다. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding: var(--s-8) 0;
+}
+.empty-line {
+  font-size: var(--t-lg);
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+/* 검색 결과 없음. 친 말을 그대로 인용하고 지우는 길을 같이 준다 —
+   '결과 없음' 만 뜨면 자기가 뭘 쳤는지 다시 확인해야 한다. */
+.search-empty { grid-column: 1 / -1; }
+.clear-filter {
+  min-height: var(--tap);
+  padding: 0 var(--s-2);
+  color: var(--mint-text);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 못 누르는 버튼. 흐리게만 두지 않고 라벨이 이유를 말한다. */
+.primary:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ── 하위 화면의 머리 ──────────────────────────────────
+   탭바로 바로 닿는 네 화면은 큰 제목을 쓰고, 그 아래 화면은 이 줄을 쓴다.
+   나가는 길이 화면 맨 위에 늘 같은 자리로 있어야, 깊이 들어가도 길을 잃지 않는다. */
+.hd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  flex: none;
+  margin: 0 0 var(--s-2) calc(var(--s-3) * -1);
+}
+.hd-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  flex: none;
+  border-radius: var(--r-full);
+  color: var(--text);
+}
+.hd-back:active { background: var(--surface-2); }
+.hd-title {
+  font-size: var(--t-md);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
