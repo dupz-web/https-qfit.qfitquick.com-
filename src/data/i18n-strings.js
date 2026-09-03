@@ -145,4 +145,10 @@ export const STATIC_UI = {
  reminderNote: {ko:'나흘 동안 운동을 안 하면 한 번 알려드립니다.', en:"We'll nudge you once after four days off.", zh:'如果四天没训练，会提醒你一次。'},
  reminderDenied: {ko:'브라우저에서 알림이 차단되어 있습니다. 사이트 설정에서 허용해주십시오.', en:'Notifications are blocked in your browser. Allow them in site settings.', zh:'浏览器已阻止通知，请在网站设置中允许。'},
  reminderUnsupported: {ko:'이 브라우저에서는 알림을 지원하지 않습니다.', en:"This browser doesn't support notifications.", zh:'此浏览器不支持通知。'},
+ recoveryTitle: {ko:'운동 후 회복', en:'Recovery', zh:'运动后恢复'},
+ recoveryIntro: {ko:'운동은 절반, 회복은 나머지 절반입니다. 아래 습관들로 다음 WOD를 더 가볍게 시작해봅니다.', en:'Training is half of it; recovery is the other half. These habits make the next session easier.', zh:'训练只是一半，恢复是另一半。养成下面的习惯，下次会更轻松。'},
+ jumpToInjury: {ko:'부위별 부상 대처법 바로가기 ↓', en:'Jump to injury guide ↓', zh:'跳到部位处理指南 ↓'},
+ recoveryNote: {ko:'※ 일반적인 운동 회복 상식을 정리한 내용이며, 통증이 며칠 이상 지속되거나 심하다면 전문가와 상담하는 걸 권장합니다.', en:'※ General recovery guidance. If pain lasts more than a few days or is severe, please see a professional.', zh:'※ 这些是一般性的恢复建议。疼痛持续数日或较严重时，请咨询专业人士。'},
+ injuryTitle: {ko:'부위별 부상 대처법', en:'Injury guide by body part', zh:'各部位处理指南'},
+ injuryIntro: {ko:'운동 중이나 후에 통증이 느껴지면 해당 부위를 눌러서 원인·대처법을 확인해보십시오.', en:'If something hurts during or after a workout, tap the body part to see causes and what to do.', zh:'训练中或训练后感到疼痛，点击对应部位查看原因与处理方法。'},
 };

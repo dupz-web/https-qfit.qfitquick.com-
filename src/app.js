@@ -2,6 +2,7 @@ import { ICON } from './ui/icons.js';
 import { openSheet, closeSheet } from './ui/sheet.js';
 import { getSupabase, hasStoredSession, isSupabaseReady } from './cloud/supabase.js';
 import * as reminder from './notify/reminder.js';
+import { RECOVERY_CARDS, INJURY_GUIDES } from './data/recovery.js';
 // Q-fit 앱 본체. legacy/index.html 의 IIFE 본문을 그대로 옮긴 것이다.
 // 화면별 분리는 라우터를 다시 짜는 단계에서 이어서 한다.
 
@@ -150,6 +151,7 @@ function applyStaticTranslations(){
  // 없이, 그 언어로 화면을 열어 봐야만 보인다. 실제로 기록 화면 라벨이 인덱스로
  // 밀려 '이번 주 횟수' 자리에 '이번 달 완주' 가 찍히고 있었다.
  // 마크업에 이름을 적어 두면 그 사고가 구조적으로 안 난다.
+ try{ renderRecovery(); }catch(e){ console.error('renderRecovery failed:', e); }
  document.querySelectorAll('[data-i18n]').forEach(el => {
  const entry = STATIC_UI[el.dataset.i18n];
  if(entry) el.textContent = t(entry);
@@ -1294,12 +1296,17 @@ try{
  if(anchor) anchor.scrollIntoView({ behavior:'smooth', block:'start' });
  });
  }
- document.querySelectorAll('.injury-summary').forEach(btn=>{
- btn.addEventListener('click', ()=>{
+ // 아코디언은 이제 데이터로 그려지므로, 부팅 때 한 번 훑어 붙이면 아직 없는
+ // 요소에 붙게 된다. 목록 자체에 걸어 두고 위임한다.
+ const injuryList = document.getElementById('injury-list');
+ if(injuryList){
+ injuryList.addEventListener('click', (e)=>{
+ const btn = e.target.closest('.injury-summary');
+ if(!btn) return;
  const acc = btn.parentElement;
  if(acc) acc.classList.toggle('open');
  });
- });
+ }
  const injurySearchInput = document.getElementById('injury-search-input');
  const injurySearchEmpty = document.getElementById('injury-search-empty');
  if(injurySearchInput){
@@ -1348,6 +1355,36 @@ function weeklyBodyparts(){
  .map(g => ({ id: g.id, label: g.label, pct: Math.round((tally[g.id] || 0) / total * 100) }))
  .filter(x => x.pct > 0)
  .sort((a, b) => b.pct - a.pct);
+}
+
+// 회복 화면을 데이터로 그린다.
+// 언어가 바뀌면 다시 그려야 하므로 applyStaticTranslations 에서도 부른다.
+function renderRecovery(){
+ const cards = document.getElementById('recovery-cards');
+ if(cards){
+ cards.innerHTML = RECOVERY_CARDS.map(c =>
+ '<div class="recovery-card">' +
+ '<div class="recovery-card-title">' + t(c.title) + '</div>' +
+ '<ol class="recovery-list">' +
+ c.items.map(it => '<li>' + t(it) + '</li>').join('') +
+ '</ol></div>'
+ ).join('');
+ }
+ const list = document.getElementById('injury-list');
+ if(list){
+ list.innerHTML = INJURY_GUIDES.map(g =>
+ '<div class="injury-accordion">' +
+ '<button type="button" class="injury-summary">' + t(g.part) + '</button>' +
+ '<div class="injury-body">' +
+ g.groups.map(gr =>
+ '<h4>' + t(gr.h) + '</h4><ul>' +
+ gr.items.map(it => '<li>' + t(it) + '</li>').join('') +
+ '</ul>'
+ ).join('') +
+ (g.warn ? '<p class="warn-line">' + t(g.warn) + '</p>' : '') +
+ '</div></div>'
+ ).join('');
+ }
 }
 
 function renderBodyparts(){
