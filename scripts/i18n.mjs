@@ -53,8 +53,25 @@ const inline = [...app.matchAll(/LANG\s*===\s*'ko'\s*\?/g)].length;
 console.log(`\n{ko,…} 덩어리 ${total}개 중 빠진 것 ${missing}개`);
 console.log(`app.js 안의 2갈래 분기(LANG==='ko' ? …) ${inline}곳 — 중국어에서 영어가 나온다`);
 
+// 마크업 안의 한글 중 data-i18n 도 없고 사전에도 안 걸린 것.
+// 이런 자리는 언어를 바꿔도 한국어로 남는데, 오류가 안 나서 안 보인다.
+const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf-8');
+const bare = [];
+for (const m of html.matchAll(/<([a-z][\w-]*)([^>]*)>([^<>{}]*[가-힣][^<>]*)</g)) {
+  const [, tag, attrs, text] = m;
+  if (attrs.includes('data-i18n')) continue;
+  const line = html.slice(0, m.index).split('\n').length;
+  bare.push({ line, tag, text: text.trim().slice(0, 34) });
+}
+if (bare.length) {
+  console.log(`\nindex.html — data-i18n 없는 한글 ${bare.length}곳`);
+  bare.slice(0, 10).forEach((b) => console.log(`  ${String(b.line).padStart(4)}행  <${b.tag}>  ${b.text}`));
+  if (bare.length > 10) console.log(`  … 그 밖에 ${bare.length - 10}곳`);
+}
+
 const limit = Number(process.env.I18N_ALLOW ?? 0);
-const bad = missing + inline;
+const bareLimit = Number(process.env.I18N_MARKUP_ALLOW ?? 0);
+const bad = missing + inline + (bare.length > bareLimit ? bare.length - bareLimit : 0);
 if (bad > limit) {
   console.log(`\n남은 것 ${bad}개 (허용 ${limit})`);
   process.exit(1);

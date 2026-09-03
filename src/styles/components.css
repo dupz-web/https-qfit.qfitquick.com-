@@ -641,3 +641,13 @@ body.sheet-open .screen { overflow: hidden; }
   left: auto;
   right: auto;
 }
+
+/* 범위를 벗어난 입력. 잘라 버리기 전에 눈에 보이게 한다. */
+.custom-duration-input.out-of-range { border-color: var(--danger); color: var(--danger); }
+.range-note {
+  display: block;
+  font-size: var(--t-xs);
+  color: var(--danger);
+  line-height: 1.4;
+}
+.range-note:empty { display: none; }

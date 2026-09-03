@@ -142,11 +142,14 @@ function applyStaticTranslations(){
 
  const recTitle = document.querySelector('#records-screen .lb-title');
  if(recTitle) recTitle.textContent = t(STATIC_UI.recTitle);
- // 순서가 아니라 이름으로 잇는다. 예전에는 인덱스로 넣었는데 마크업에는 라벨이
- // 여섯 개, JS 는 네 개만 알고 있어서 셋째부터 한 칸씩 밀렸다 —
- // '이번 주 횟수' 자리에 '이번 달 완주' 가 찍히고 '총 완주' 가 두 번 나왔다.
- // 숫자는 주간인데 이름은 월간이라, 틀린 값을 자신 있게 보여주는 화면이었다.
- document.querySelectorAll('.record-label[data-i18n]').forEach(el => {
+ // data-i18n 이 붙은 것은 사전이 통째로 몬다.
+ //
+ // 이 함수의 나머지는 셀렉터를 손으로 나열해 채우는데, 그러면 문구를 하나 넣을
+ // 때마다 여기에도 적어야 하고 잊으면 그 자리만 번역이 안 된다 — 오류도 경고도
+ // 없이, 그 언어로 화면을 열어 봐야만 보인다. 실제로 기록 화면 라벨이 인덱스로
+ // 밀려 '이번 주 횟수' 자리에 '이번 달 완주' 가 찍히고 있었다.
+ // 마크업에 이름을 적어 두면 그 사고가 구조적으로 안 난다.
+ document.querySelectorAll('[data-i18n]').forEach(el => {
  const entry = STATIC_UI[el.dataset.i18n];
  if(entry) el.textContent = t(entry);
  });
@@ -180,11 +183,31 @@ function updateSetNote(){
 // ---------- STATE ----------
 let selectedCoach = COACHES[0];
 let selectedExKeys = new Set(['SQUAT','RUNINPLACE','BURPEE','JUMPSQUAT']);
+// 세트당 시간과 세트 수의 한계. 여기 한 곳에서만 정한다 —
+// 예전에는 30 이라는 숫자가 마크업 min/max 와 JS 네 곳에 흩어져 있어서,
+// 한 곳만 고치면 입력창은 받아 주는데 값이 조용히 잘리는 상태가 됐다.
+export const LIMITS = { setSec: { min: 4, max: 50 }, setCount: { min: 2, max: 40 } };
+const clamp = (v, {min, max}, fallback) => {
+ const n = parseInt(v, 10);
+ return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
+};
+
+// 범위 밖 입력을 그 자리에서 알린다. 조용히 잘라 버리면 사용자는 자기가 넣은
+// 값이 왜 다른 값이 됐는지 알 수 없다 — 입력창이 값을 먹은 것처럼 보인다.
+function markRange(input, range, message){
+ if(!input) return;
+ const raw = parseInt(input.value, 10);
+ const bad = input.value !== '' && Number.isFinite(raw) && (raw < range.min || raw > range.max);
+ input.classList.toggle('out-of-range', bad);
+ const note = document.getElementById(input.id.replace('custom-', '').replace('-input', '') + '-range-note');
+ if(note) note.textContent = bad ? message : '';
+}
+
 let selectedDurationPreset = 'normal';
 function getDurationPreset(){
  if(selectedDurationPreset === 'custom'){
  const input = document.getElementById('custom-duration-input');
- const val = Math.max(4, Math.min(30, parseInt(input && input.value, 10) || 10));
+ const val = clamp(input && input.value, LIMITS.setSec, 10);
  return { base: val, range: 1 }; // range:1 → always exactly `val` seconds
  }
  return DURATION_PRESETS[selectedDurationPreset] || DURATION_PRESETS.normal;
@@ -1663,6 +1686,12 @@ try{
  document.querySelectorAll('#duration-row .duration-btn').forEach(b=> b.classList.toggle('active', b.dataset.preset === 'normal'));
  }
  });
+ customInput.addEventListener('input', ()=>{
+ markRange(customInput, LIMITS.setSec, t({
+ ko: LIMITS.setSec.min + '~' + LIMITS.setSec.max + '초까지 넣을 수 있습니다',
+ en: 'Enter ' + LIMITS.setSec.min + '-' + LIMITS.setSec.max + ' seconds',
+ zh: '可输入' + LIMITS.setSec.min + '~' + LIMITS.setSec.max + '秒'}));
+ });
  }
 }catch(e){ console.error('custom duration toggle failed:', e); }
 
@@ -1689,7 +1718,7 @@ try{
  if(customSetToggle.checked){
  customSetInput.style.display = 'inline-block';
  document.querySelectorAll('#setcount-row .duration-btn').forEach(b=> b.classList.remove('active'));
- selectedTotalSets = Math.max(2, Math.min(30, parseInt(customSetInput.value, 10) || 8));
+ selectedTotalSets = clamp(customSetInput.value, LIMITS.setCount, 8);
  } else {
  customSetInput.style.display = 'none';
  selectedTotalSets = 8;
@@ -1699,11 +1728,21 @@ try{
  revealDurationCard();
  });
  customSetInput.addEventListener('input', ()=>{
- selectedTotalSets = Math.max(2, Math.min(30, parseInt(customSetInput.value, 10) || 8));
+ selectedTotalSets = clamp(customSetInput.value, LIMITS.setCount, 8);
+ markRange(customSetInput, LIMITS.setCount, t({
+ ko: LIMITS.setCount.min + '~' + LIMITS.setCount.max + '세트까지 넣을 수 있습니다',
+ en: 'Enter ' + LIMITS.setCount.min + '-' + LIMITS.setCount.max + ' sets',
+ zh: '可输入' + LIMITS.setCount.min + '~' + LIMITS.setCount.max + '组'}));
  updateSetNote();
  });
  }
 }catch(e){ console.error('custom set count failed:', e); }
+
+// 더보기에서도 설정으로 갈 수 있다 — FR-11 로 가이드가 여기로 모였다
+try{
+ const moreSettingsBtn = document.getElementById('open-settings-btn-more');
+ if(moreSettingsBtn) moreSettingsBtn.addEventListener('click', ()=> showScreen(settingsScreen));
+}catch(e){ console.error('more settings button failed:', e); }
 
 setupBackBtn.addEventListener('click', ()=> showScreen(startScreen));
 
