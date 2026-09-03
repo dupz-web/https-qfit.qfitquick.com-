@@ -129,11 +129,14 @@ function applyStaticTranslations(){
 
   const recTitle = document.querySelector('#records-screen .lb-title');
   if(recTitle) recTitle.textContent = t(STATIC_UI.recTitle);
-  const recLabels = document.querySelectorAll('.record-label');
-  if(recLabels[0]) recLabels[0].textContent = t(STATIC_UI.recBestStreak);
-  if(recLabels[1]) recLabels[1].textContent = t(STATIC_UI.recCurrentStreak);
-  if(recLabels[2]) recLabels[2].textContent = t(STATIC_UI.recMonth);
-  if(recLabels[3]) recLabels[3].textContent = t(STATIC_UI.recTotal);
+  // 순서가 아니라 이름으로 잇는다. 예전에는 인덱스로 넣었는데 마크업에는 라벨이
+  // 여섯 개, JS 는 네 개만 알고 있어서 셋째부터 한 칸씩 밀렸다 —
+  // '이번 주 횟수' 자리에 '이번 달 완주' 가 찍히고 '총 완주' 가 두 번 나왔다.
+  // 숫자는 주간인데 이름은 월간이라, 틀린 값을 자신 있게 보여주는 화면이었다.
+  document.querySelectorAll('.record-label[data-i18n]').forEach(el => {
+    const entry = STATIC_UI[el.dataset.i18n];
+    if(entry) el.textContent = t(entry);
+  });
   const histLabel = document.querySelectorAll('#records-screen .section-label')[0];
   if(histLabel) histLabel.textContent = t(STATIC_UI.recHistoryLabel);
 

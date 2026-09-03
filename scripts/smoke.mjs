@@ -40,9 +40,20 @@ const probe = await page.evaluate(() => {
     // 스타일이 붙었는지
     bodyBg: getComputedStyle(document.body).backgroundImage.slice(0, 40),
     appMaxWidth: getComputedStyle(q('#app')).maxWidth,
-    cssVarFire: getComputedStyle(document.documentElement)
-      .getPropertyValue('--fire')
-      .trim(),
+    // 토큰이 실제로 값으로 풀리는지. 특정 hex 를 기대하지 않는다 —
+    // 테마마다 다르고 디자인이 바뀔 때마다 검사가 거짓 실패한다.
+    tokens: Object.fromEntries(
+      ['--accent', '--text', '--surface', '--text-dim', '--tap', '--t-md'].map((k) => [
+        k, getComputedStyle(document.documentElement).getPropertyValue(k).trim(),
+      ])
+    ),
+    // 옛 이름이 새 토큰으로 이어져 있는지. 끊기면 CSS 절반이 색을 잃는다.
+    aliasOk: (() => {
+      const cs = getComputedStyle(document.documentElement);
+      const g = (k) => cs.getPropertyValue(k).trim();
+      return g('--card') === g('--surface') && g('--ink') === g('--text')
+        && g('--muted') === g('--text-dim');
+    })(),
   };
 });
 
@@ -53,7 +64,10 @@ console.log('--- JS 초기화 ---');
 console.log(`  #play-btn 문구    ${JSON.stringify(probe.playBtnText)}`);
 console.log(`  주간 스트립 칸    ${probe.weekStripChildren}  (기대 7)`);
 console.log('--- CSS ---');
-console.log(`  --fire            ${JSON.stringify(probe.cssVarFire)}`);
+for (const [k, v] of Object.entries(probe.tokens)) {
+  console.log(`  ${k.padEnd(16)} ${JSON.stringify(v)}`);
+}
+console.log(`  옛 이름 연결      ${probe.aliasOk}`);
 console.log(`  #app max-width    ${probe.appMaxWidth}  (기대 460px)`);
 console.log(`  body 배경         ${probe.bodyBg}...`);
 
@@ -74,7 +88,8 @@ const ok =
   probe.screens === 16 &&
   probe.activeScreen === 'start-screen' &&
   probe.weekStripChildren === 7 &&
-  probe.cssVarFire === '#ff3d00' &&
+  probe.aliasOk &&
+  Object.values(probe.tokens).every((v) => v !== '') &&
   probe.appMaxWidth === '460px';
 
 console.log(ok ? '\n통과' : '\n실패 — 위 값 중 기대와 다른 것이 있다');

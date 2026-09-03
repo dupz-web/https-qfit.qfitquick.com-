@@ -53,6 +53,8 @@ export const STATIC_UI = {
   recCurrentStreak: {ko:'현재 연속', en:'Current Streak'},
   recMonth: {ko:'이번 달 완주', en:'This Month'},
   recTotal: {ko:'총 완주', en:'Total Sessions'},
+  recWeek: {ko:'이번 주 횟수', en:'This Week'},
+  recTotalTime: {ko:'총 운동 시간', en:'Total Time'},
   recHistoryLabel: {ko:'최근 출석', en:'Recent Sessions'},
   recNoBadge: {ko:'아직 뱃지 없음', en:'No badge yet'},
   recMaxBadge: {ko:'최고 등급 달성!', en:'Max tier reached!'},
