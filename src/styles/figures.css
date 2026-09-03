@@ -11,8 +11,8 @@
 }
 .photo-demo-layer.active{ opacity:1; }
 .figure-wrap svg{ width:100%; height:100%; overflow:visible; }
-.figure-wrap .fig-part{ stroke:var(--ink); stroke-width:7; stroke-linecap:round; fill:none; }
-.figure-wrap .fig-head{ fill:var(--ink); }
+.figure-wrap .fig-part{ stroke:var(--text); stroke-width:7; stroke-linecap:round; fill:none; }
+.figure-wrap .fig-head{ fill:var(--text); }
 #game-screen.boss .figure-wrap .fig-part{ stroke:#ff6b5b; }
 #game-screen.boss .figure-wrap .fig-head{ fill:#ff6b5b; }
 

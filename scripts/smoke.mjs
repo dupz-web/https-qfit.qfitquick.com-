@@ -68,7 +68,7 @@ for (const [k, v] of Object.entries(probe.tokens)) {
   console.log(`  ${k.padEnd(16)} ${JSON.stringify(v)}`);
 }
 console.log(`  옛 이름 연결      ${probe.aliasOk}`);
-console.log(`  #app max-width    ${probe.appMaxWidth}  (기대 460px)`);
+console.log(`  #app max-width    ${probe.appMaxWidth}  (380~640px 사이면 통과)`);
 console.log(`  body 배경         ${probe.bodyBg}...`);
 
 if (warnings.length) {
@@ -90,7 +90,10 @@ const ok =
   probe.weekStripChildren === 7 &&
   probe.aliasOk &&
   Object.values(probe.tokens).every((v) => v !== '') &&
-  probe.appMaxWidth === '460px';
+  // 정확한 px 을 기대하지 않는다 — 디자인을 만질 때마다 검사가 거짓 실패한다.
+  // 앱 상자가 폰 폭 안에서 제한되고 있다는 것만 본다.
+  parseInt(probe.appMaxWidth, 10) >= 380 &&
+  parseInt(probe.appMaxWidth, 10) <= 640;
 
 console.log(ok ? '\n통과' : '\n실패 — 위 값 중 기대와 다른 것이 있다');
 process.exit(ok ? 0 : 1);

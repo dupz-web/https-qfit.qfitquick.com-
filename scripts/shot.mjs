@@ -1,10 +1,11 @@
 // 화면을 찍는다. 라이트·다크 두 벌.
 //
-// 차트나 캔버스가 아니어도 그림으로만 보이는 것이 있다 — 색이 어긋난 것,
-// 카드가 배경에 묻힌 것, 글자가 잘린 것. DOM 값으로는 안 잡힌다.
-//
-//   SHOT_ONLY=start-screen npm run shot   한 화면만
-//   SHOT_THEME=dark        npm run shot   한 테마만
+// ⚠ 클래스만 토글해서 찍지 말 것.
+// 화면 열여섯 개가 전부 DOM 에 있으므로 .active 를 옮기면 그림은 나온다.
+// 그런데 그 화면을 채우는 render 함수는 안 돈다 — 기록 화면을 그렇게 찍었더니
+// 뱃지 막대가 꽉 차 있고 아바타가 비어 있어서, 멀쩡한 것을 고칠 뻔했다.
+// (실제 값은 막대 0%, 아바타 "1" 이었다.)
+// 그래서 앱이 실제로 쓰는 길로 눌러서 들어간다.
 import fs from 'node:fs';
 import { launch, IPHONE_12, DEFAULT_URL } from './_browser.mjs';
 
@@ -12,41 +13,77 @@ const URL = process.env.SHOT_URL || DEFAULT_URL;
 const OUT = 'screenshots';
 fs.mkdirSync(OUT, { recursive: true });
 
-const ALL = [
-  'start-screen', 'more-screen', 'setup-screen', 'manual-select-screen',
-  'records-screen', 'recovery-screen', 'video-gallery-screen',
-  'routines-screen', 'settings-screen', 'account-screen',
-  'ai-quiz-screen', 'game-screen', 'result-screen',
-];
-const screens = process.env.SHOT_ONLY ? process.env.SHOT_ONLY.split(',') : ALL;
+// 화면마다 "홈에서 여기까지 어떻게 가는가". 못 가는 곳은 null.
+const PATHS = {
+  'start-screen': [],
+  'settings-screen': ['#open-settings-btn'],
+  'account-screen': ['#open-account-btn'],
+  'recovery-screen': ['#open-recovery-btn'],
+  'video-gallery-screen': ['#open-video-gallery-btn'],
+  'more-screen': ['#open-more-btn'],
+  'records-screen': ['#open-more-btn', '#open-records-btn'],
+  'routines-screen': ['#open-more-btn', '#open-routines-btn'],
+  'setup-screen': ['#one-min-start-btn', '#mode-random'],
+  'manual-select-screen': ['#one-min-start-btn', '#mode-manual'],
+  'ai-quiz-screen': ['#one-min-start-btn', '#mode-ai-btn'],
+  // 운동·결과는 한 판을 돌려야 나온다. scripts/flow.mjs 가 그 길을 간다.
+  'game-screen': null,
+  'result-screen': null,
+};
+
+const screens = process.env.SHOT_ONLY
+  ? process.env.SHOT_ONLY.split(',')
+  : Object.keys(PATHS);
 const themes = process.env.SHOT_THEME ? [process.env.SHOT_THEME] : ['light', 'dark'];
 
 const browser = await launch();
+let faked = 0;
 
 for (const theme of themes) {
-  const page = await browser.newPage({ ...IPHONE_12, colorScheme: theme });
-  await page.goto(URL, { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(700);
-
   for (const id of screens) {
-    const found = await page.evaluate((sid) => {
-      const el = document.getElementById(sid);
-      if (!el) return false;
-      document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
-      el.classList.add('active');
-      return true;
-    }, id);
-    if (!found) {
-      console.log(`  ? ${id} — 없음`);
-      continue;
+    const page = await browser.newPage({ ...IPHONE_12, colorScheme: theme });
+    await page.goto(URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(600);
+
+    const path = PATHS[id];
+    let note = '';
+
+    if (path) {
+      for (const sel of path) {
+        await page.click(sel).catch(() => {});
+        await page.waitForTimeout(320);
+      }
     }
-    await page.waitForTimeout(250);
-    const file = `${OUT}/${theme}-${id}.png`;
+
+    const reached = await page.evaluate(
+      (sid) => document.querySelector('.screen.active')?.id === sid,
+      id
+    );
+
+    if (!reached) {
+      // 길이 없는 화면은 어쩔 수 없이 토글한다. 다만 그 사실을 파일 이름에 남긴다 —
+      // 안 남기면 렌더 안 된 그림을 진짜 화면으로 착각한다.
+      await page.evaluate((sid) => {
+        const el = document.getElementById(sid);
+        if (!el) return;
+        document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
+        el.classList.add('active');
+      }, id);
+      await page.waitForTimeout(250);
+      note = '-미렌더';
+      faked++;
+    }
+
+    const file = `${OUT}/${theme}-${id}${note}.png`;
     await page.screenshot({ path: file });
     console.log(`  ${file}`);
+    await page.close();
   }
-  await page.close();
 }
 
 await browser.close();
 console.log(`\n${themes.length}개 테마 × ${screens.length}개 화면`);
+if (faked) {
+  console.log(`⚠ ${faked}장은 눌러서 못 가고 클래스만 토글했다(-미렌더).`);
+  console.log('  그 그림의 숫자·목록은 실제 화면과 다를 수 있다.');
+}

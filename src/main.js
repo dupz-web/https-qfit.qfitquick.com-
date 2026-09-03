@@ -5,6 +5,7 @@
 // 이 여섯 줄은 legacy/index.html 의 <style> 한 덩어리를 자른 것이고 순서가 곧 원본이다.
 import './styles/tokens.css';
 import './styles/base.css';
+import './styles/components.css';
 import './styles/screens.css';
 import './styles/game.css';
 import './styles/result.css';
@@ -16,6 +17,10 @@ if (import.meta.env.DEV) {
 }
 
 import './app.js';
+import { paintIcons } from './ui/icons.js';
+
+// data-icon 이 적힌 자리에 선 아이콘을 채운다
+paintIcons();
 
 // PWA 서비스 워커. 홈 화면에 추가 + 오프라인 캐싱을 켠다.
 // sw.js 가 없어도 등록만 조용히 실패하고 페이지는 그대로 뜬다.
