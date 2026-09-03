@@ -19,8 +19,9 @@
   letter-spacing: -0.045em;
   color: var(--text);
 }
-/* 로고는 한 색. 노랑은 화면당 한 번뿐이고 그 자리는 '시작' 버튼이다. */
-.logo-big { color: inherit; }
+/* 로고의 Q 는 민트. 노랑은 밝은 바탕에서 글자로 못 쓰지만(탁한 겨자색이 된다)
+   민트는 두 테마 다 글자로 쓸 수 있어서, 브랜드 색을 로고에 남길 수 있다. */
+.logo-big { color: var(--mint-text); }
 /* 부제는 표어와 같은 말을 두 번 하고 있어 지운다(마크업에서 제거) */
 .hero-line { margin-top: var(--s-2); }
 
@@ -55,11 +56,11 @@
   font-weight: 600;
   color: var(--text-dim);
 }
-.week-day.today .wd-dot { border-color: var(--text); color: var(--text); }
+.week-day.today .wd-dot { border-color: var(--accent); border-width: 2px; color: var(--text); }
 .week-day.done .wd-dot {
-  background: var(--accent);
+  background: var(--mint);
   border-color: transparent;
-  color: var(--on-accent);
+  color: var(--on-mint);
 }
 
 /* ── 통계 (기록 · 결과 공용) ───────────────────────────
@@ -98,9 +99,8 @@
 
 .record-label,
 .stat-label {
-  font-size: var(--t-xs);
+  font-size: var(--t-sm);
   font-weight: 500;
-  letter-spacing: 0.06em;
   color: var(--text-dim);
 }
 .best-score { font-size: var(--t-sm); color: var(--text-dim); }
@@ -119,8 +119,8 @@
   color: var(--text-dim);
 }
 .cal-day.empty { visibility: hidden; }
-.cal-day.done { background: var(--accent); color: var(--on-accent); font-weight: 700; }
-.cal-day.today { border: 1px solid var(--text); color: var(--text); font-weight: 700; }
+.cal-day.done { background: var(--mint); color: var(--on-mint); font-weight: 700; }
+.cal-day.today { border: 2px solid var(--accent); color: var(--text); font-weight: 700; }
 
 /* ── 진행 막대 ───────────────────────────────────────── */
 .badge-progress { display: flex; flex-direction: column; gap: var(--s-2); }
@@ -147,7 +147,7 @@
      JS 가 한 번이라도 못 돌면 "아직 뱃지 없음" 옆에 100% 막대가 뜬다. */
   width: 0;
   border-radius: var(--r-full);
-  background: var(--accent);
+  background: var(--mint);
   transition: width var(--dur-slow) var(--ease-out);
 }
 
@@ -171,7 +171,7 @@
 .xp-bottle { width: 40px; height: 76px; flex: none; }
 .bottle-outline { fill: none; stroke: var(--line); stroke-width: 3; }
 .bottle-cap { fill: var(--text-dim); }
-.xp-water { fill: var(--accent); transition: y var(--dur-slow) var(--ease-out), height var(--dur-slow) var(--ease-out); }
+.xp-water { fill: var(--mint); transition: y var(--dur-slow) var(--ease-out), height var(--dur-slow) var(--ease-out); }
 .xp-bottle-info { display: flex; flex-direction: column; gap: 2px; }
 .xp-bottle-info #xp-level-label { font-size: var(--t-xl); font-weight: 800; letter-spacing: -0.02em; }
 .xp-bottle-info #xp-progress-label { font-size: var(--t-sm); color: var(--text-dim); }
@@ -198,7 +198,7 @@
   border-radius: var(--r-full);
   border: 1px solid var(--line);
 }
-.achv-box.done .achv-icon { background: var(--accent); border-color: transparent; }
+.achv-box.done .achv-icon { background: var(--mint); border-color: transparent; }
 .achv-box .achv-label {
   font-size: var(--t-xs);
   text-align: center;
@@ -266,10 +266,8 @@
 .injury-body { display: none; padding: 0 var(--s-4) var(--s-4); }
 .injury-accordion.open .injury-body { display: block; }
 .injury-body h4 {
-  font-size: var(--t-xs);
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: var(--t-sm);
+  font-weight: 700;
   color: var(--text-dim);
   margin-top: var(--s-4);
 }
@@ -315,6 +313,6 @@
 /* ── AI 퀴즈 ─────────────────────────────────────────── */
 .quiz-progress { display: flex; gap: var(--s-2); }
 .quiz-progress .dot { width: 6px; height: 6px; border-radius: var(--r-full); background: var(--line); }
-.quiz-progress .dot.active { background: var(--text); }
+.quiz-progress .dot.active { background: var(--mint); }
 .quiz-step { display: flex; flex-direction: column; gap: var(--s-3); }
 .quiz-title { font-size: var(--t-xl); font-weight: 800; letter-spacing: -0.02em; }

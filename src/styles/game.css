@@ -194,7 +194,7 @@
   position: relative;
   width: 100%;
   border-radius: var(--r-full);
-  background: var(--accent);
+  background: var(--mint);
   transition: height var(--dur-slow) var(--ease-out);
 }
 .wod-side-badge {
@@ -206,7 +206,7 @@
   font-weight: 700;
   color: var(--text-dim);
 }
-.wod-side-badge-q { color: var(--accent-text); }
+.wod-side-badge-q { color: var(--mint-text); }
 
 /* ── 순간 배너 ───────────────────────────────────────── */
 .clear-banner,

@@ -48,8 +48,8 @@
   font-weight: 700;
 }
 .pr-badge {
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--mint);
+  color: var(--on-mint);
   animation: prPop var(--dur-slow) var(--ease-pop);
 }
 .persona-badge,
@@ -73,7 +73,7 @@
   color: var(--text-dim);
 }
 .result-xp-label #result-xp-level { font-weight: 700; color: var(--text); }
-.result-xp-label #result-xp-gain { color: var(--accent-text); font-weight: 700; }
+.result-xp-label #result-xp-gain { color: var(--mint-text); font-weight: 700; }
 
 /* 다음 행동. 화면 맨 아래에 모아 둔다. */
 .result-actions {

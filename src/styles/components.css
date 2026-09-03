@@ -33,10 +33,8 @@
 .eyebrow + .lb-title { margin-top: calc(var(--s-2) * -1); }
 
 .section-label {
-  font-size: var(--t-xs);
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: var(--t-sm);
+  font-weight: 700;
   color: var(--text-dim);
 }
 
@@ -123,24 +121,26 @@
 .ex-chip,
 .repeat-chip { border-radius: var(--r-full); font-size: var(--t-sm); }
 .repeat-chip { width: 100%; }
-.jump-to-injury-btn { width: 100%; color: var(--cool); border-color: var(--cool); }
+.jump-to-injury-btn { width: 100%; color: var(--mint-text); border-color: var(--mint-text); }
 .auth-tab { flex: 1; border-radius: var(--r-full); }
 /* 기능 버튼에 각각 색을 주면 한 화면에 강조가 셋이 된다.
    SOS 만 성격을 남기고(응급이라 찾을 수 있어야 한다) 나머지는 본문색. */
-.feature-btn-recovery { color: var(--cool); }
+.feature-btn-recovery { color: var(--mint-text); }
 .feature-btn-video { color: var(--text); }
 .install-action-btn { min-height: 38px; border-radius: var(--r-full); font-size: var(--t-sm); }
 
-/* 고른 것은 채워서 뒤집는다. 노랑을 여기 쓰면 화면에 노랑이 둘이 된다. */
+/* 고른 것은 민트로 채운다.
+   색마다 하는 일이 정해져 있다 — 노랑은 '지금 할 일', 민트는 '해낸 것·고른 것'.
+   여기에 노랑을 쓰면 화면에 시작 버튼이 둘인 것처럼 보인다. */
 .duration-btn.active,
 .group-btn.active,
 .ex-chip.active,
 .auth-tab.active {
-  background: var(--text);
-  color: var(--bg);
-  border-color: var(--text);
+  background: var(--mint);
+  color: var(--on-mint);
+  border-color: transparent;
 }
-.duration-btn.active .sub { color: var(--bg); opacity: 0.7; }
+.duration-btn.active .sub { color: var(--on-mint); opacity: 0.75; }
 
 /* (3) 글자만 — 부차적인 이동 */
 .link-btn,
@@ -236,13 +236,7 @@
 
 .setup-card,
 .mode-card { display: flex; flex-direction: column; gap: var(--s-3); }
-.mode-card-title {
-  font-size: var(--t-xs);
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-}
+.mode-card-title { font-size: var(--t-sm); font-weight: 700; color: var(--text-dim); }
 .mode-card-divider { height: 1px; background: var(--line); border: none; margin: var(--s-1) 0; }
 
 .feature-box,
@@ -330,7 +324,7 @@
   color: var(--text-dim);
   font-size: var(--t-sm);
 }
-.weight-input-row input { flex: 1; min-width: 0; }
+.weight-input-row input { flex: 0 1 110px; min-width: 0; }
 
 .custom-toggle,
 .warmup-toggle {
@@ -346,7 +340,7 @@
   width: 22px;
   height: 22px;
   flex: none;
-  accent-color: var(--accent);
+  accent-color: var(--mint);
 }
 .save-routine-row { flex-wrap: wrap; }
 .save-routine-msg { font-size: var(--t-sm); color: var(--success); }
@@ -384,9 +378,9 @@
   color: var(--text-dim);
   text-align: left;
 }
-.comeback-banner { border-left-color: var(--cool); }
+.comeback-banner { border-left-color: var(--mint); }
 .challenge-invite { border-left-color: var(--hot); }
-.result-recovery-tip { border-left-color: var(--cool); }
+.result-recovery-tip { border-left-color: var(--mint); }
 .comeback-banner b,
 .result-recovery-tip b { color: var(--text); font-weight: 700; }
 .ci-title { font-weight: 700; font-size: var(--t-md); color: var(--text); }
