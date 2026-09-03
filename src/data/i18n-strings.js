@@ -141,4 +141,8 @@ export const STATIC_UI = {
  weekPartsEmpty: {ko:'이번 주 기록이 쌓이면 여기에 나옵니다', en:"It'll show up once you've trained this week", zh:'本周有记录后会显示在这里'},
  watchClip: {ko:'동작 영상 보기', en:'Watch clip', zh:'查看动作视频'},
  startNow: {ko:'지금 시작', en:'Start now', zh:'立即开始'},
+ setReminder: {ko:'운동 알림', en:'Workout reminder', zh:'训练提醒'},
+ reminderNote: {ko:'나흘 동안 운동을 안 하면 한 번 알려드립니다.', en:"We'll nudge you once after four days off.", zh:'如果四天没训练，会提醒你一次。'},
+ reminderDenied: {ko:'브라우저에서 알림이 차단되어 있습니다. 사이트 설정에서 허용해주십시오.', en:'Notifications are blocked in your browser. Allow them in site settings.', zh:'浏览器已阻止通知，请在网站设置中允许。'},
+ reminderUnsupported: {ko:'이 브라우저에서는 알림을 지원하지 않습니다.', en:"This browser doesn't support notifications.", zh:'此浏览器不支持通知。'},
 };

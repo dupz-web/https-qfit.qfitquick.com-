@@ -19,7 +19,8 @@
     "nav": "node scripts/nav.mjs",
     "sheet": "node scripts/sheet.mjs",
     "weight": "node scripts/weight.mjs",
-    "i18n": "node scripts/i18n.mjs"
+    "i18n": "node scripts/i18n.mjs",
+    "reminder": "node scripts/reminder.mjs"
   },
   "devDependencies": {
     "eruda": "^3.4.3",

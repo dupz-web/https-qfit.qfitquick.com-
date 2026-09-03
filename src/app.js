@@ -1,6 +1,7 @@
 import { ICON } from './ui/icons.js';
 import { openSheet, closeSheet } from './ui/sheet.js';
 import { getSupabase, hasStoredSession, isSupabaseReady } from './cloud/supabase.js';
+import * as reminder from './notify/reminder.js';
 // Q-fit 앱 본체. legacy/index.html 의 IIFE 본문을 그대로 옮긴 것이다.
 // 화면별 분리는 라우터를 다시 짜는 단계에서 이어서 한다.
 
@@ -2823,6 +2824,32 @@ try{
  }
 }catch(e){ console.error('install banner setup failed:', e); }
 try{ loadProfile(); }catch(e){ console.error('loadProfile failed:', e); }
+
+// 운동 알림(FR-03).
+// 권한은 토글을 켤 때만 묻는다 — 부팅하자마자 물으면 대부분 거절하고,
+// 브라우저가 그 거절을 기억해서 나중에 켜고 싶어도 못 켜게 된다.
+try{
+ const remToggle = document.getElementById('reminder-toggle');
+ const remNote = document.getElementById('reminder-note');
+ if(remToggle){
+ remToggle.checked = reminder.isEnabled() && reminder.canNotify();
+ remToggle.addEventListener('change', async ()=>{
+ if(!remToggle.checked){ reminder.disable(); if(remNote) remNote.textContent = t(STATIC_UI.reminderNote); return; }
+ if(typeof Notification === 'undefined'){
+ remToggle.checked = false;
+ if(remNote) remNote.textContent = t(STATIC_UI.reminderUnsupported);
+ return;
+ }
+ const ok = await reminder.enable();
+ remToggle.checked = ok;
+ if(remNote) remNote.textContent = ok ? t(STATIC_UI.reminderNote) : t(STATIC_UI.reminderDenied);
+ });
+ }
+ // 앱을 열었을 때 알릴 때가 됐으면 알린다. 닫혀 있는 사이는 웹푸시가
+ // 필요하고 그건 배포가 붙어야 한다.
+ const last = myProfile.lastPlayDate ? new Date(myProfile.lastPlayDate + 'T00:00:00').getTime() : 0;
+ reminder.checkOnOpen(last);
+}catch(e){ console.error('reminder setup failed:', e); }
 try{ checkComeback(); }catch(e){ console.error('checkComeback boot failed:', e); }
 try{
  langBtn.addEventListener('click', ()=>{
