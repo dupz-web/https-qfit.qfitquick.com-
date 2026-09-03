@@ -2,12 +2,12 @@
 //
 // 모듈로 쪼갠 뒤 제일 흔한 사고는 "빌드는 되는데 참조가 하나 끊긴 것"이다.
 // 그건 콘솔에만 나오고 빌드는 조용히 성공한다. 그래서 여기서 콘솔을 읽는다.
-import { chromium } from 'playwright';
+import { launch, context, DEFAULT_URL } from './_browser.mjs';
 
-const URL = process.env.SMOKE_URL || 'http://localhost:5173/';
+const URL = process.env.SMOKE_URL || DEFAULT_URL;
 
-const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 390, height: 664 } });
+const browser = await launch();
+const page = await (await context(browser)).newPage();
 
 const errors = [];
 const warnings = [];

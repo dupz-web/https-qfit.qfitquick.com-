@@ -2,20 +2,15 @@
 //
 // 스모크는 "홈이 뜬다"까지고, 모듈로 쪼갠 뒤 실제로 깨지는 건 화면을 넘어가는 자리다.
 // 참조가 하나 끊겨도 홈은 멀쩡히 뜨기 때문에 여기까지 와야 알 수 있다.
-import { chromium } from 'playwright';
+import { launch, context, DEFAULT_URL } from './_browser.mjs';
 import fs from 'node:fs';
 
-const URL = process.env.FLOW_URL || 'http://localhost:5173/';
+const URL = process.env.FLOW_URL || DEFAULT_URL;
 const SHOT_DIR = 'screenshots';
 fs.mkdirSync(SHOT_DIR, { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({
-  viewport: { width: 390, height: 664 }, // 기준 기기: 아이폰 12
-  deviceScaleFactor: 2,
-  hasTouch: true,
-  isMobile: true,
-});
+const browser = await launch();
+const ctx = await context(browser); // 기준 기기: 아이폰 12
 const page = await ctx.newPage();
 
 const errors = [];
@@ -89,10 +84,15 @@ console.log(`  사진 실제 로드     ${photoOk}`);
 
 await browser.close();
 
+// 가로 넘침은 여기서 판정하지 않는다 — `npm run phone` 이 네 폭 × 화면별로 맡는다.
+// 한 검사가 두 가지를 판정하면 빨간불이 떴을 때 어느 쪽이 깨진 건지 모른다.
+if (game.overflowPx > 0) {
+  console.log(`  ⚠ 가로 넘침 ${game.overflowPx}px — 판정은 'npm run phone' 이 한다`);
+}
+
 const ok =
   finalScreen === 'game-screen' &&
   !!game.exName &&
-  game.overflowPx === 0 &&
   photoOk &&
   errors.length === 0;
 

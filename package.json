@@ -8,12 +8,16 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --host",
+    "cert": "node scripts/cert.mjs",
     "smoke": "node scripts/smoke.mjs",
     "flow": "node scripts/flow.mjs",
-    "compare": "node scripts/compare.mjs"
+    "compare": "node scripts/compare.mjs",
+    "phone": "node scripts/phone.mjs"
   },
   "devDependencies": {
+    "eruda": "^3.4.3",
     "playwright": "^1.62.1",
+    "selfsigned": "^5.5.0",
     "vite": "^7.1.5"
   }
 }

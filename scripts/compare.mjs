@@ -2,10 +2,10 @@
 //
 // 0단계의 약속은 "동작을 바꾸지 않는다"인데, 그건 눈으로 훑어서는 확인할 수 없다.
 // 화면마다 크기·색·개수를 숫자로 뽑아 두 쪽을 맞춰 본다. 다른 칸만 보면 된다.
-import { chromium } from 'playwright';
+import { launch, IPHONE_12 } from './_browser.mjs';
 
 const A = process.env.URL_A || 'http://localhost:5199/'; // 원본
-const B = process.env.URL_B || 'http://localhost:5173/'; // 재구조화
+const B = process.env.URL_B || 'https://localhost:5173/'; // 재구조화
 
 const SCREENS = [
   'start-screen', 'more-screen', 'ai-quiz-screen', 'settings-screen',
@@ -14,11 +14,8 @@ const SCREENS = [
 ];
 
 async function measure(url) {
-  const browser = await chromium.launch();
-  const page = await browser.newPage({
-    viewport: { width: 390, height: 664 },
-    deviceScaleFactor: 2, hasTouch: true, isMobile: true,
-  });
+  const browser = await launch();
+  const page = await browser.newPage(IPHONE_12);
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 

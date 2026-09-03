@@ -14,7 +14,25 @@ const https =
     ? { key: fs.readFileSync(keyPath), cert: fs.readFileSync(certPath) }
     : undefined;
 
+// 아이폰이 인증서를 받아 갈 길. 파일을 폰으로 옮길 방법이 마땅치 않아서
+// (AirDrop 은 Mac 이 필요하고 USB 전송은 iTunes 가 필요하다) 사파리로 내려받게 한다.
+const serveDevCert = {
+  name: 'serve-dev-cert',
+  configureServer(server) {
+    server.middlewares.use('/dev-ca.crt', (_req, res) => {
+      const f = path.join(certDir, 'dev-ca.crt');
+      if (!fs.existsSync(f)) {
+        res.statusCode = 404;
+        return res.end('npm run cert 를 먼저 돌릴 것');
+      }
+      res.setHeader('Content-Type', 'application/x-x509-ca-cert');
+      res.end(fs.readFileSync(f));
+    });
+  },
+};
+
 export default defineConfig({
+  plugins: [serveDevCert],
   // 상대 경로로 뽑는다. GitHub Pages 가 저장소 이름이 붙은 하위 경로로 서빙하기 때문에
   // 절대 경로('/assets/...')로 뽑으면 배포본이 전부 404 가 된다.
   base: './',

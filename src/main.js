@@ -10,6 +10,11 @@ import './styles/game.css';
 import './styles/result.css';
 import './styles/figures.css';
 
+// 아이폰 화면 위 콘솔. 개발 빌드에만 들어간다 — 프로덕션에서는 이 블록이 통째로 사라진다.
+if (import.meta.env.DEV) {
+  import('./dev/console.js');
+}
+
 import './app.js';
 
 // PWA 서비스 워커. 홈 화면에 추가 + 오프라인 캐싱을 켠다.
