@@ -31,8 +31,11 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="icon" href="icons/icon-192.png">
 
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 설계가 정한 두 벌: 본문은 Noto Sans KR, 숫자·대문자 라벨은 Barlow Condensed.
+     Barlow 는 한글 글리프가 없으므로 숫자와 라틴에만 쓴다 — 한글에 걸면 조용히 폴백된다. -->
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <!-- 오디오 잠금 해제용 짧은 소리.
@@ -829,60 +832,75 @@
  </div>
 
  <!-- GAME -->
- <div class="screen" id="game-screen">
- <div class="game-top-row">
- <button class="mute-btn" id="mute-btn-game" type="button" aria-label="소리 켜기/끄기"></button>
- <button class="pause-btn" id="pause-btn" data-icon="pause" aria-label="일시정지"></button>
- </div>
- <div class="hud">
- <span>SCORE <span class="score" id="score-val">0</span></span>
- <span class="mission-count" id="mission-count">1 / 7</span>
- </div>
- <div class="mission-timebar"><div class="mission-timebar-fill" id="mission-timebar-fill"></div></div>
- <div class="next-preview" id="next-preview"></div>
- <div class="boss-banner" id="boss-banner">BOSS WOD</div>
- <div class="bonus-banner" id="bonus-banner">보너스 타임! 2배 XP</div>
+  <div class="screen" id="game-screen">
 
- <div class="wod-side-progress" id="wod-side-progress">
- <div class="wod-side-track"><div class="wod-side-fill" id="wod-side-fill"></div></div>
- <div class="wod-side-badge" id="wod-side-badge"><span class="wod-side-badge-q">Q</span></div>
- </div>
+    <!-- 1단 · 세션 chrome. 두 개만 둔다(진행 n/N, 점수). -->
+    <div class="gz-top">
+      <div class="mission-timebar"><div class="mission-timebar-fill" id="mission-timebar-fill"></div></div>
+      <div class="hud">
+        <span class="hud-step"><b id="mission-count">1</b><i id="mission-total">/ 7</i></span>
+        <span class="hud-score"><span class="kick">score</span><b class="score" id="score-val">0</b></span>
+      </div>
+    </div>
 
- <div class="mission-zone" id="mission-zone">
- <div class="clear-banner" id="clear-banner">CLEAR!</div>
+    <!-- 조건부 배너. 2단을 밀어내지 않고 자기 높이만 차지한다. -->
+    <div class="boss-banner" id="boss-banner">BOSS WOD</div>
+    <div class="bonus-banner" id="bonus-banner">보너스 라운드 · 2배 XP</div>
 
- <div class="figure-wrap" id="figure-wrap">
- <svg viewBox="0 0 100 140">
- <g id="figure-outer">
- <g id="figure-group">
- <circle class="fig-head" cx="50" cy="20" r="10"></circle>
- <line class="fig-part" x1="50" y1="30" x2="50" y2="82"></line>
- <line class="fig-part armL" x1="50" y1="38" x2="30" y2="58"></line>
- <line class="fig-part armR" x1="50" y1="38" x2="70" y2="58"></line>
- <line class="fig-part legL" x1="50" y1="82" x2="35" y2="118"></line>
- <line class="fig-part legR" x1="50" y1="82" x2="65" y2="118"></line>
- </g>
- </g>
- </svg>
- </div>
- <div class="photo-demo-wrap" id="photo-demo-wrap" style="display:none;">
- <img class="photo-demo-layer" id="photo-demo-a">
- <img class="photo-demo-layer" id="photo-demo-b">
- </div>
+    <!-- 2단 · 지금 할 일 하나. 이 화면에서 제일 큰 것은 여기 숫자다. -->
+    <div class="mission-zone" id="mission-zone">
+      <div class="clear-banner" id="clear-banner">CLEAR!</div>
 
- <div class="ex-name" id="ex-name">점프</div>
- <div class="ex-target" id="ex-target">10개</div>
- <div class="ex-cue" id="ex-cue">제자리에서 위로 점프</div>
+      <div class="figure-wrap" id="figure-wrap">
+        <svg viewBox="0 0 100 140">
+          <g id="figure-outer">
+            <g id="figure-group">
+              <circle class="fig-head" cx="50" cy="20" r="10"></circle>
+              <line class="fig-part" x1="50" y1="30" x2="50" y2="82"></line>
+              <line class="fig-part armL" x1="50" y1="38" x2="30" y2="58"></line>
+              <line class="fig-part armR" x1="50" y1="38" x2="70" y2="58"></line>
+              <line class="fig-part legL" x1="50" y1="82" x2="35" y2="118"></line>
+              <line class="fig-part legR" x1="50" y1="82" x2="65" y2="118"></line>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="photo-demo-wrap" id="photo-demo-wrap" style="display:none;">
+        <img class="photo-demo-layer" id="photo-demo-a" alt="">
+        <img class="photo-demo-layer" id="photo-demo-b" alt="">
+      </div>
 
- <div class="hold-ring" id="hold-ring">
- <svg viewBox="0 0 150 150">
- <circle class="track" cx="75" cy="75" r="65"></circle>
- <circle class="prog" id="hold-ring-prog" cx="75" cy="75" r="65"></circle>
- </svg>
- <div class="num" id="hold-num">10</div>
- </div>
- </div>
- </div>
+      <h2 class="ex-name" id="ex-name">점프</h2>
+
+      <!-- 반복 동작: 남은 초를 큰 숫자로. 이 앱은 횟수를 세지 않고 전부 시간 기반이다. -->
+      <div class="ex-target" id="ex-target"><b id="ex-target-num">10</b><i>초</i></div>
+
+      <!-- 버티는 동작(플랭크 등): 큰 숫자 대신 링. 자세를 '유지'한다는 게 모양으로 읽힌다. -->
+      <div class="hold-ring" id="hold-ring">
+        <svg viewBox="0 0 120 120">
+          <circle class="track" cx="60" cy="60" r="54"></circle>
+          <circle class="prog" id="hold-ring-prog" cx="60" cy="60" r="54"></circle>
+        </svg>
+        <div class="num" id="hold-num">10<i>초</i></div>
+      </div>
+
+      <p class="ex-cue" id="ex-cue">제자리에서 위로 점프</p>
+      <p class="ex-warn" id="ex-warn"></p>
+    </div>
+
+    <!-- 3단 · 다음 동작과 조작. -->
+    <div class="gz-bottom">
+      <span class="next-preview" id="next-preview"></span>
+      <button class="mute-btn" id="mute-btn-game" type="button" aria-label="소리 켜기/끄기"></button>
+      <button class="pause-btn" id="pause-btn" data-icon="pause" aria-label="일시정지"></button>
+    </div>
+
+    <!-- 세션 진행. 잔여 시간(상단 가로)과 축을 달리해 둘이 안 겹친다. -->
+    <div class="wod-side-progress" id="wod-side-progress">
+      <div class="wod-side-track"><div class="wod-side-fill" id="wod-side-fill"></div></div>
+      <div class="wod-side-badge" id="wod-side-badge"><span class="wod-side-badge-q">Q</span></div>
+    </div>
+  </div>
 
  <!-- PAUSE OVERLAY -->
  <!-- SOFT LOGIN PROMPT (shown once, after a few uses — not forced upfront) -->

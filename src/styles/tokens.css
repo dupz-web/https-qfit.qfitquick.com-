@@ -12,6 +12,11 @@
 :root {
   color-scheme: light dark;
 
+  /* 설계가 정한 두 벌. --font-num 은 숫자·대문자 라벨 전용이다 —
+     Barlow Condensed 에는 한글 글리프가 없어서 한글에 걸면 조용히 폴백된다. */
+  --font: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', system-ui, sans-serif;
+  --font-num: 'Barlow Condensed', 'Noto Sans KR', sans-serif;
+
   /* ── 글자 크기 ────────────────────────────────────────
    * rem 이라 OS 글꼴 크기 설정을 따라간다. px 로 박으면 눈이 어두운 사람이
    * 시스템에서 글자를 키워도 이 앱만 그대로다.
@@ -22,17 +27,23 @@
   --t-lg: 1.125rem;    /* 18px */
   --t-xl: 1.5rem;      /* 24px */
   --t-2xl: 2rem;       /* 32px */
-  --t-3xl: 2.75rem;    /* 44px — 통계 숫자. 이게 커야 위계가 생긴다 */
-  --t-display: clamp(2.25rem, 10vw, 3rem);   /* 화면 제목 */
-  --t-hero: clamp(3.25rem, 17vw, 4.75rem);   /* 로고·결과 점수 */
-  --t-huge: clamp(6rem, 34vw, 10rem);        /* 카운트다운 숫자 */
+  --t-stat: 2.75rem;   /* 44px — 통계 숫자 */
+  --t-title: 2.5rem;   /* 40px — 탭바 최상위 4화면의 큰 제목 */
+  --t-logo: 4.125rem;  /* 66px — 운동 화면의 '하나의 큰 숫자' */
+  --t-cd: 8.25rem;     /* 132px — 카운트다운 */
+  /* 옛 이름. 화면들이 아직 쓴다 — 옮기고 나면 지운다. */
+  --t-3xl: var(--t-stat);
+  --t-display: var(--t-title);
+  --t-hero: var(--t-logo);
+  --t-huge: var(--t-cd);
 
   /* ── 여백 (4px 격자) ──────────────────────────────── */
   --s-1: 4px;  --s-2: 8px;   --s-3: 12px;  --s-4: 16px;
   --s-5: 20px; --s-6: 24px;  --s-8: 32px;  --s-10: 40px;
 
   /* ── 모서리 ──────────────────────────────────────── */
-  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-full: 999px;
+  /* 설계 기준: 카드·타일은 10px, 사진 같은 큰 면만 16px */
+  --r-sm: 6px; --r-md: 10px; --r-lg: 10px; --r-xl: 16px; --r-full: 999px;
 
   /* ── 터치 타겟 하한 ────────────────────────────────
    * Apple 44pt / Google 48dp. 지금 홈 메뉴 버튼이 25px, 배너 닫기가 17×20px 이라

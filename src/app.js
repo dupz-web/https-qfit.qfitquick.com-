@@ -260,6 +260,17 @@ const exCue = document.getElementById('ex-cue');
 const holdRing = document.getElementById('hold-ring');
 const holdRingProg = document.getElementById('hold-ring-prog');
 const holdNum = document.getElementById('hold-num');
+const exTargetNum = document.getElementById('ex-target-num');
+const missionTotalEl = document.getElementById('mission-total');
+const exWarn = document.getElementById('ex-warn');
+
+// 남은 초를 두 자리에 같이 쓴다. 반복 동작은 큰 숫자로, 버티는 동작은 링 안에.
+// 이 앱은 횟수를 세지 않는다 — 카메라도 판정도 없이 전부 시간 기반이다(FR-02).
+function showRemain(sec){
+ const v = String(Math.max(0, sec));
+ if(exTargetNum) exTargetNum.textContent = v;
+ if(holdNum) holdNum.firstChild ? (holdNum.firstChild.nodeValue = v) : (holdNum.textContent = v);
+}
 const clearBanner = document.getElementById('clear-banner');
 
 const finalSub = document.getElementById('final-sub');
@@ -1953,7 +1964,8 @@ function runMission(){
  const m = missions[missionIndex];
  missionActive = true;
 
- missionCountEl.textContent = (missionIndex+1) + ' / ' + missions.length;
+ missionCountEl.textContent = String(missionIndex+1);
+ if(missionTotalEl) missionTotalEl.textContent = '/ ' + missions.length;
  Sound.restartBGMForSet(missionIndex); // a slightly different tune each set
  const wodSideFill = document.getElementById('wod-side-fill');
  const wodSideBadge = document.getElementById('wod-side-badge');
@@ -1972,14 +1984,19 @@ function runMission(){
  if(m.ex.key === 'LEGRAISE'){ startLegSync(1600); } else { stopLegSync(); }
  startPhotoDemo(m.ex.key);
  exName.textContent = t(m.ex.label) + (m.isBoss ? (LANG==='ko' ? ' (보스)' : ' (BOSS)') : '');
- exTarget.style.display = 'none';
+ // 버티는 동작(플랭크)은 링, 나머지는 큰 숫자. 둘 다 남은 초를 말한다 —
+ // 링을 쓰는 이유는 '유지한다'가 모양으로 읽히기 때문이다.
+ const isHold = m.ex.type === 'hold';
+ if(exTarget) exTarget.style.display = isHold ? 'none' : '';
+ if(holdRing) holdRing.style.display = isHold ? '' : 'none';
  exCue.textContent = t(m.ex.cue);
+ if(exWarn) exWarn.textContent = m.ex.tip ? ((LANG==='ko' ? '주의 · ' : 'Careful · ') + t(m.ex.tip)) : '';
  clearBanner.style.opacity = '0';
  // show what's coming up next continuously through the whole set,
  // instead of only flashing on for the last 3 seconds
  const upcomingNext = missions[missionIndex + 1];
  if(upcomingNext){
- nextPreview.textContent = (LANG==='ko' ? '다음: ' : 'Next: ') + upcomingNext.ex.icon + ' ' + t(upcomingNext.ex.label);
+ nextPreview.textContent = (LANG==='ko' ? '다음 · ' : 'Next · ') + t(upcomingNext.ex.label);
  } else {
  nextPreview.textContent = LANG==='ko' ? '마지막 세트!' : 'Final set!';
  }
@@ -2026,10 +2043,11 @@ function pickVariant(list){
 }
 
 function runTimer(m){
- const r = 65, circumference = 2*Math.PI*r;
+ // viewBox 120 에 r=54. 여기 숫자가 CSS 와 어긋나면 링이 절반만 차거나 넘친다.
+ const r = 54, circumference = 2*Math.PI*r;
  holdRingProg.style.strokeDasharray = circumference;
  holdRingProg.style.strokeDashoffset = 0;
- holdNum.textContent = m.duration;
+ showRemain(m.duration);
  missionTimebarFill.style.width = '100%';
 
  let elapsed = 0;
@@ -2038,7 +2056,7 @@ function runTimer(m){
  if(!missionActive || isPaused) return;
  elapsed++;
  const remain = m.duration - elapsed;
- holdNum.textContent = Math.max(0, remain);
+ showRemain(remain);
  const pct = Math.min(1, elapsed / m.duration);
  holdRingProg.style.strokeDashoffset = circumference * pct;
  missionTimebarFill.style.width = ((1-pct) * 100) + '%';

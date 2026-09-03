@@ -16,6 +16,7 @@
 /* ── 화면 머리 ─────────────────────────────────────────
    작은 대문자 라벨 + 큰 제목. 이 둘의 크기 차이가 화면의 기준자가 된다. */
 .eyebrow {
+  font-family: var(--font-num);
   font-size: var(--t-xs);
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -129,18 +130,17 @@
 .feature-btn-video { color: var(--text); }
 .install-action-btn { min-height: 38px; border-radius: var(--r-full); font-size: var(--t-sm); }
 
-/* 고른 것은 민트로 채운다.
-   색마다 하는 일이 정해져 있다 — 노랑은 '지금 할 일', 민트는 '해낸 것·고른 것'.
-   여기에 노랑을 쓰면 화면에 시작 버튼이 둘인 것처럼 보인다. */
+/* 고른 칩은 노랑으로 채운다(설계 기준). 민트는 진행·완료 쪽에 남는다 —
+   채워진 막대, 완주한 날, 받은 업적, 토글 켜짐. */
 .duration-btn.active,
 .group-btn.active,
 .ex-chip.active,
 .auth-tab.active {
-  background: var(--mint);
-  color: var(--on-mint);
-  border-color: transparent;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
 }
-.duration-btn.active .sub { color: var(--on-mint); opacity: 0.75; }
+.duration-btn.active .sub { color: var(--on-accent); opacity: 0.75; }
 
 /* (3) 글자만 — 부차적인 이동 */
 .link-btn,
@@ -552,18 +552,9 @@ body.immersive .tabbar {
 }
 .tab-icon { display: flex; }
 .tab-label { font-size: var(--t-xs); font-weight: 600; }
-.tab.on { color: var(--text); }
-/* 켜진 탭 위에 얇은 민트 막대. 색만으로 구분하면 색을 못 보는 사람이 못 읽는다 —
-   글자 진하기와 막대, 두 가지로 말한다. */
-.tab.on::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  width: 28px;
-  height: 2px;
-  border-radius: var(--r-full);
-  background: var(--mint);
-}
+/* 켜진 탭은 앰버 글자 + 굵게(설계 기준).
+   색 하나로만 구분하면 색을 구별하기 어려운 사람이 못 읽으므로 굵기를 같이 쓴다. */
+.tab.on { color: var(--accent-text); font-weight: 700; }
 .tab { position: relative; }
 .tab:active { background: var(--surface-2); }
 

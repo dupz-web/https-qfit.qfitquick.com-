@@ -19,9 +19,7 @@ body {
   min-height: 100dvh;
   background: var(--bg);
   color: var(--text);
-  font-family: Pretendard Variable, Pretendard, -apple-system, BlinkMacSystemFont,
-    'Apple SD Gothic Neo', 'Segoe UI', system-ui, sans-serif;
-  font-variant-numeric: tabular-nums;  /* 숫자가 바뀔 때 자리가 안 흔들리게 */
+  font-family: var(--font);
   font-size: var(--t-md);
   line-height: 1.5;
   overflow: hidden;
