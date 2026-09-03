@@ -1,0 +1,19 @@
+{
+  "name": "qfit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Q-fit — 게임을 켰더니 운동이 끝나있다",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "smoke": "node scripts/smoke.mjs",
+    "flow": "node scripts/flow.mjs",
+    "compare": "node scripts/compare.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1",
+    "vite": "^7.1.5"
+  }
+}

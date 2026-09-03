@@ -1,0 +1,23 @@
+// 진입점. CSS 를 순서대로 들이고 앱 본체를 띄운다.
+//
+// ⚠ CSS 순서를 바꾸지 말 것. 특이도가 같은 규칙끼리는 나중에 온 쪽이 이기므로,
+// 순서가 바뀌면 어디가 어떻게 달라졌는지 알 수 없는 방식으로 화면이 틀어진다.
+// 이 여섯 줄은 legacy/index.html 의 <style> 한 덩어리를 자른 것이고 순서가 곧 원본이다.
+import './styles/tokens.css';
+import './styles/base.css';
+import './styles/screens.css';
+import './styles/game.css';
+import './styles/result.css';
+import './styles/figures.css';
+
+import './app.js';
+
+// PWA 서비스 워커. 홈 화면에 추가 + 오프라인 캐싱을 켠다.
+// sw.js 가 없어도 등록만 조용히 실패하고 페이지는 그대로 뜬다.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}sw.js`)
+      .catch(() => {});
+  });
+}

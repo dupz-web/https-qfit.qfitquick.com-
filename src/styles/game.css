@@ -1,0 +1,91 @@
+/* countdown */
+#countdown-num{ font-family:'Anton', sans-serif; font-size:140px; animation:pop 0.85s ease; color:var(--ink); }
+.loading-figure{ width:130px; height:130px; margin-bottom:8px; animation:fig-bounce 0.9s ease-in-out infinite; filter:drop-shadow(0 6px 16px rgba(255,214,10,0.3)); }
+@keyframes fig-bounce{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-10px);} }
+@keyframes pop{ 0%{transform:scale(0.4); opacity:0;} 35%{transform:scale(1.18); opacity:1;} 100%{transform:scale(1); opacity:1;} }
+
+/* game */
+#game-screen{ justify-content:flex-start; padding:calc(28px + env(safe-area-inset-top)) 20px 22px; }
+#game-screen.boss{ background:linear-gradient(180deg, rgba(255,20,20,0.28), rgba(120,0,0,0.22)); }
+.next-preview{
+  display:none;
+  align-self:flex-end; z-index:5;
+  font-size:14px; color:var(--volt); font-weight:800; text-align:right; line-height:1.4;
+  background:var(--card); border:2px solid rgba(255,214,10,0.55); border-radius:14px;
+  padding:8px 14px; margin:0 0 10px;
+  pointer-events:none;
+  box-shadow:0 4px 16px rgba(0,0,0,0.4);
+  animation:panelReveal 0.3s ease;
+}
+.next-preview.on{ display:block; }
+
+.hud{ width:100%; display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--muted); margin-bottom:8px; gap:6px; }
+.hud .score{ font-size:19px; color:var(--ink); font-weight:800; }
+.hud .mission-count{ font-weight:700; flex-shrink:0; }
+
+.mission-timebar{ width:100%; height:5px; border-radius:99px; background:var(--line); overflow:hidden; margin-bottom:16px; }
+.mission-timebar-fill{ height:100%; background:linear-gradient(90deg, var(--fire), var(--volt)); width:100%; }
+
+.coach-bubble{
+  display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line);
+  border-radius:14px; padding:10px 14px; margin-bottom:18px; min-height:40px;
+}
+.coach-bubble .emoji{ font-size:24px; flex-shrink:0; }
+.coach-bubble .line{ font-size:13.5px; color:var(--ink); line-height:1.4; }
+
+.boss-banner{
+  text-align:center; font-family:'Anton', sans-serif; font-size:16px; letter-spacing:0.2em;
+  color:#ff3b3b; opacity:0; margin-bottom:6px;
+}
+.boss-banner.on{ opacity:1; animation:flicker 0.6s steps(2) infinite; }
+@keyframes flicker{ 50%{opacity:0.25;} }
+
+.bonus-banner{
+  text-align:center; font-family:'Anton', sans-serif; font-size:15px; letter-spacing:0.1em;
+  color:#4fe3ff; opacity:0; margin-bottom:6px;
+}
+.bonus-banner.on{ opacity:1; animation:sparkle 0.9s ease-in-out infinite; }
+@keyframes sparkle{ 0%,100%{ opacity:1; transform:scale(1);} 50%{ opacity:0.7; transform:scale(1.06);} }
+
+.mission-zone{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
+
+.wod-side-progress{
+  position:absolute; right:-2px; top:210px; bottom:130px; z-index:1; pointer-events:none;
+  width:16px;
+}
+.wod-side-track{
+  position:absolute; inset:0; border-radius:99px;
+  background:rgba(0,0,0,0.32); border:1px solid rgba(255,214,10,0.3); overflow:hidden;
+}
+.wod-side-fill{
+  position:absolute; left:0; right:0; bottom:0; width:100%; height:0%;
+  background:linear-gradient(180deg, var(--volt), var(--fire));
+  transition:height 0.6s cubic-bezier(.22,1,.36,1);
+}
+.wod-side-badge{
+  position:absolute; left:50%; bottom:0%; transform:translate(-50%, 50%);
+  width:24px; height:24px; border-radius:50%; background:var(--volt); border:2px solid #0d0a08;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.5);
+  transition:bottom 0.6s cubic-bezier(.22,1,.36,1);
+}
+.wod-side-badge-q{ font-family:'Anton', sans-serif; font-size:12px; color:#0d0a08; }
+.ex-name{ font-family:'Anton', sans-serif; font-size:clamp(28px,8.5vw,40px); letter-spacing:0.02em; margin-top:6px; }
+.ex-target{ font-size:14px; color:var(--muted); margin-bottom:4px; letter-spacing:0.04em; }
+.ex-cue{ font-size:14px; font-weight:700; color:var(--fire); margin-bottom:10px; letter-spacing:0.01em; }
+
+.hold-ring{ position:relative; width:106px; height:106px; margin-bottom:4px; }
+.hold-ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+.hold-ring circle{ fill:none; stroke-width:8; }
+.hold-ring .track{ stroke:var(--line); }
+.hold-ring .prog{ stroke:var(--fire); stroke-linecap:round; transition:stroke-dashoffset 0.2s linear; }
+.hold-ring .num{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:'Anton', sans-serif; font-size:32px;
+}
+.clear-banner{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:'Anton', sans-serif; font-size:46px; color:var(--volt); opacity:0; pointer-events:none;
+  text-shadow:0 0 20px rgba(255,214,10,0.6);
+}
+
