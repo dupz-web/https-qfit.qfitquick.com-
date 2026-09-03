@@ -1,0 +1,116 @@
+// 하단 탭바와 뒤로가기.
+//
+// 이걸 붙이기 전에는 홈에서 눌러 들어갔다가 화면마다 있는 "닫기"로 되돌아오는
+// 구조였다. 화면이 열여섯 개인데 지금 어디에 있는지 알려 주는 것이 없었고,
+// 안드로이드 뒤로가기를 누르면 앱이 그냥 종료됐다.
+//
+// 화면을 직접 켜지 않고 **원래 있던 버튼을 누른다**(via). 그 버튼들이 화면을
+// 채우는 렌더까지 들고 있기 때문이다 — 건너뛰면 뱃지 막대가 꽉 차 있고
+// 아바타가 비어 있는, 껍데기만 있는 화면이 뜬다.
+import { ICON } from './icons.js';
+import { showScreenById, isWorkoutRunning } from '../app.js';
+
+const TABS = [
+  { id: 'start-screen', label: '홈', icon: 'home', via: null },
+  { id: 'records-screen', label: '기록', icon: 'chart', via: '#open-records-btn' },
+  { id: 'recovery-screen', label: '회복', icon: 'recovery', via: '#open-recovery-btn' },
+  { id: 'more-screen', label: '더보기', icon: 'more', via: '#open-more-btn' },
+];
+
+// 운동에 집중해야 하는 화면에서는 탭바를 감춘다.
+// 여기서 나가는 길은 일시정지뿐이어야 한다 — 운동 중에 탭이 보이면 누른다.
+const IMMERSIVE = new Set([
+  'wod-preview-screen', 'warmup-screen', 'countdown-screen',
+  'game-screen', 'result-screen',
+]);
+
+// 탭이 아닌 화면에 있을 때 어느 탭을 켜 둘지. 없으면 아무것도 안 켠다.
+const BELONGS_TO = {
+  'settings-screen': 'more-screen',
+  'routines-screen': 'more-screen',
+  'account-screen': 'more-screen',
+  'video-gallery-screen': 'recovery-screen',
+  'setup-screen': 'start-screen',
+  'manual-select-screen': 'start-screen',
+  'ai-quiz-screen': 'start-screen',
+};
+
+let bar = null;
+let ignoreNextPush = false;
+
+function build() {
+  bar = document.createElement('nav');
+  bar.className = 'tabbar';
+  bar.setAttribute('aria-label', '주요 화면');
+  bar.innerHTML = TABS.map(
+    (t) =>
+      `<button class="tab" type="button" data-screen="${t.id}" aria-label="${t.label}">` +
+      `<span class="tab-icon">${ICON[t.icon]}</span>` +
+      `<span class="tab-label">${t.label}</span></button>`
+  ).join('');
+
+  bar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab');
+    if (!btn) return;
+    const id = btn.dataset.screen;
+    if (document.querySelector('.screen.active')?.id === id) return;
+    const tab = TABS.find((t) => t.id === id);
+    const opener = tab?.via && document.querySelector(tab.via);
+    if (opener) opener.click();
+    else showScreenById(id);
+  });
+
+  document.getElementById('app')?.appendChild(bar);
+}
+
+function paint(id) {
+  const active = BELONGS_TO[id] ?? id;
+  bar?.querySelectorAll('.tab').forEach((b) => {
+    b.classList.toggle('on', b.dataset.screen === active);
+    b.setAttribute('aria-current', b.dataset.screen === active ? 'page' : 'false');
+  });
+  document.body.dataset.screen = id;
+  document.body.classList.toggle('immersive', IMMERSIVE.has(id));
+}
+
+export function initNav() {
+  build();
+
+  document.addEventListener('screenchange', (e) => {
+    const id = e.detail.id;
+    paint(id);
+    if (ignoreNextPush) {
+      ignoreNextPush = false;
+      return;
+    }
+    // 같은 화면을 두 번 쌓지 않는다 — 그러면 뒤로가기를 두 번 눌러야 한다
+    if (history.state?.s === id) return;
+    history.pushState({ s: id }, '', '#' + id);
+  });
+
+  window.addEventListener('popstate', (e) => {
+    const current = document.querySelector('.screen.active')?.id;
+
+    // 운동 중에 뒤로가기를 누르면 나가는 대신 일시정지한다.
+    // 그냥 나가면 타이머는 계속 돌고 화면만 바뀌어서, 돌아왔을 때
+    // 몇 세트가 지나가 있다.
+    if (current === 'game-screen' && isWorkoutRunning()) {
+      history.pushState({ s: 'game-screen' }, '', '#game-screen');
+      document.getElementById('pause-btn')?.click();
+      return;
+    }
+
+    const target = e.state?.s || 'start-screen';
+    if (target === current) return;
+    ignoreNextPush = true;
+    const tab = TABS.find((t) => t.id === target);
+    const opener = tab?.via && document.querySelector(tab.via);
+    if (opener) opener.click();
+    else showScreenById(target);
+  });
+
+  // 첫 화면을 기록해 둔다. 이게 없으면 첫 뒤로가기가 앱을 나가 버린다.
+  const first = document.querySelector('.screen.active')?.id || 'start-screen';
+  history.replaceState({ s: first }, '', location.hash || '');
+  paint(first);
+}

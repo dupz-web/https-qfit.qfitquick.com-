@@ -28,6 +28,12 @@ export const ICON = {
   pause: svg('<path d="M10 5v14"/><path d="M15 5v14"/>'),
   play: svg('<path d="M7 4.5v15l12-7.5-12-7.5Z" fill="currentColor" stroke="none"/>'),
   back: svg('<path d="M15 5 8 12l7 7"/>'),
+
+  // 하단 탭
+  home: svg('<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1v-9.5Z"/>'),
+  chart: svg('<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/>'),
+  recovery: svg('<path d="M20.8 6.6a4.9 4.9 0 0 0-7 0L12 8.4l-1.8-1.8a4.9 4.9 0 1 0-7 7l8.8 8.8 8.8-8.8a4.9 4.9 0 0 0 0-7Z"/>'),
+  more: svg('<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>'),
 };
 
 // 마크업에 data-icon="close" 라고 적어 두면 부팅할 때 채워 넣는다.

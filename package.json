@@ -15,7 +15,8 @@
     "phone": "node scripts/phone.mjs",
     "contrast": "node scripts/contrast.mjs",
     "coverage": "node scripts/coverage.mjs",
-    "shot": "node scripts/shot.mjs"
+    "shot": "node scripts/shot.mjs",
+    "nav": "node scripts/nav.mjs"
   },
   "devDependencies": {
     "eruda": "^3.4.3",

@@ -513,3 +513,56 @@
 }
 
 .ci-sub { font-size: var(--t-sm); color: var(--text-dim); }
+
+/* ── 하단 탭바 ─────────────────────────────────────────
+   화면이 열여섯 개인데 지금 어디 있는지 알려 주는 것이 없었다.
+   홈에서 눌러 들어갔다 화면마다 있는 '닫기'로 되돌아오는 구조라
+   깊이 들어갈수록 길을 잃는다. */
+.tabbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+  transition: transform var(--dur) var(--ease-out), opacity var(--dur) linear;
+}
+/* 운동 중에는 감춘다. 나가는 길은 일시정지뿐이어야 한다. */
+body.immersive .tabbar {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 54px;
+  padding: var(--s-2) var(--s-1);
+  color: var(--text-dim);
+  background: none;
+  border: none;
+}
+.tab-icon { display: flex; }
+.tab-label { font-size: var(--t-xs); font-weight: 600; }
+.tab.on { color: var(--text); }
+/* 켜진 탭 위에 얇은 민트 막대. 색만으로 구분하면 색을 못 보는 사람이 못 읽는다 —
+   글자 진하기와 막대, 두 가지로 말한다. */
+.tab.on::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  width: 28px;
+  height: 2px;
+  border-radius: var(--r-full);
+  background: var(--mint);
+}
+.tab { position: relative; }
+.tab:active { background: var(--surface-2); }

@@ -302,7 +302,18 @@ function showScreen(el){
  }catch(e){ console.error('repeat button refresh failed:', e); }
  try{ renderWeekStrip(); }catch(e){ console.error('week strip render failed:', e); }
  }
+ // 화면이 바뀌었다고 알린다. 탭바와 뒤로가기가 이 신호를 듣는다 —
+ // 그쪽에서 showScreen 을 직접 부르게 하면 위에 붙은 훅들을 건너뛰게 된다.
+ document.dispatchEvent(new CustomEvent('screenchange', { detail: { id: el.id } }));
 }
+
+// 밖에서 화면을 부를 수 있는 유일한 문. 다만 여는 버튼이 따로 있는 화면은
+// 그 버튼을 누르는 편이 낫다 — 버튼이 화면을 채우는 렌더까지 들고 있다.
+export function showScreenById(id){
+ const el = document.getElementById(id);
+ if(el) showScreen(el);
+}
+export function isWorkoutRunning(){ return missionActive; }
 
 // ---------- AUDIO (synthesized, no files) ----------
 

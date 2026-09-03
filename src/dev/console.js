@@ -20,4 +20,7 @@ window.addEventListener('unhandledrejection', (e) => {
   console.error('[unhandled promise]', e.reason);
 });
 
+// 기본 위치가 오른쪽 아래라 하단 탭바를 가린다. 위로 올려 둔다.
+eruda.position({ x: window.innerWidth - 56, y: 96 });
+
 console.log('%c Q-fit dev ', 'background:#ffd60a;color:#0d0a08;font-weight:bold', location.href);

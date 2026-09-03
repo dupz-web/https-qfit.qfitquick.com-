@@ -18,9 +18,12 @@ if (import.meta.env.DEV) {
 
 import './app.js';
 import { paintIcons } from './ui/icons.js';
+import { initNav } from './ui/nav.js';
 
 // data-icon 이 적힌 자리에 선 아이콘을 채운다
 paintIcons();
+// 하단 탭바와 뒤로가기. app.js 가 화면을 다 만든 뒤여야 한다.
+initNav();
 
 // PWA 서비스 워커. 홈 화면에 추가 + 오프라인 캐싱을 켠다.
 // sw.js 가 없어도 등록만 조용히 실패하고 페이지는 그대로 뜬다.
