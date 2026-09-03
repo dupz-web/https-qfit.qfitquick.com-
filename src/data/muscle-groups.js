@@ -7,3 +7,16 @@ export const MUSCLE_GROUPS = [
   { id:'core',  label:{ko:'코어',en:'Core',zh:'核心'}, keys:['PLANK','LEGRAISE','CRUNCH','HIPBRIDGE'] },
   { id:'full',  label:{ko:'전신',en:'Full Body',zh:'全身'}, keys:['RUNINPLACE','BURPEE','ARMYCRAWL'] },
 ];
+
+// 동작 하나가 어느 묶음에 속하는지. 주간 비중(FR-12)이 이걸로 센다.
+//
+// ⚠ 한 동작이 두 묶음에 들어 있을 수 있다(배밀기는 상체이자 전신).
+// 양쪽에 세면 합이 100%를 넘어 비중이라는 말이 거짓이 되므로, 먼저 나오는
+// 묶음 하나에만 넣는다. 순서가 곧 우선순위다.
+export const EX_TO_GROUP = (() => {
+  const map = {};
+  for (const g of MUSCLE_GROUPS) {
+    for (const k of g.keys) if (!(k in map)) map[k] = g.id;
+  }
+  return map;
+})();

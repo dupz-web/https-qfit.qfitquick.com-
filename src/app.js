@@ -8,7 +8,7 @@ import { Sound } from './audio/sound.js';
 import { STATIC_UI } from './data/i18n-strings.js';
 import { COACHES } from './data/coaches.js';
 import { EXERCISES } from './data/exercises.js';
-import { MUSCLE_GROUPS } from './data/muscle-groups.js';
+import { MUSCLE_GROUPS, EX_TO_GROUP } from './data/muscle-groups.js';
 import { DURATION_PRESETS } from './data/durations.js';
 import { MOTIVATION_LINES } from './data/motivation.js';
 import { PHOTO_SEQUENCES } from './data/photo-sequences.js';
@@ -153,6 +153,7 @@ function applyStaticTranslations(){
  const entry = STATIC_UI[el.dataset.i18n];
  if(entry) el.textContent = t(entry);
  });
+ try{ renderBodyparts(); }catch(e){ console.error('renderBodyparts failed:', e); }
  const histLabel = document.querySelectorAll('#records-screen .section-label')[0];
  if(histLabel) histLabel.textContent = t(STATIC_UI.recHistoryLabel);
 
@@ -988,7 +989,7 @@ function todayStr(){
 }
 function todayCompletionCount(){
  const today = todayStr();
- return (myProfile.history || []).filter(ts => new Date(ts).toISOString().slice(0,10) === today).length;
+ return (myProfile.history || []).filter(e => new Date(histTime(e)).toISOString().slice(0,10) === today).length;
 }
 function isYesterday(dateStr){
  const d = new Date(dateStr + 'T00:00:00');
@@ -1006,8 +1007,8 @@ function renderHistoryList(){
  historyList.innerHTML = '<div class="lb-empty">' + t({ko:'아직 완주 기록이 없습니다.', en:'No sessions completed yet.', zh:'还没有完成记录。'}) + '</div>';
  return;
  }
- historyList.innerHTML = hist.map(ts=>{
- const d = new Date(ts);
+ historyList.innerHTML = hist.map(e=>{
+ const d = new Date(histTime(e));
  const dateStr = t({ko:(d.getMonth()+1)+'월 '+d.getDate()+'일', en:d.toLocaleString('en-US',{month:'short'}) + ' ' + d.getDate(), zh:(d.getMonth()+1)+'月'+d.getDate()+'日'});
  const timeStr = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
  return '<div class="lb-row"><div class="lb-name">'+dateStr+'</div><div class="lb-stats">'+timeStr+'</div></div>';
@@ -1018,7 +1019,7 @@ function renderHistoryList(){
 function weeklyCompletionCount(){
  const now = Date.now();
  const weekMs = 7 * 24 * 60 * 60 * 1000;
- return (myProfile.history || []).filter(ts => now - ts <= weekMs).length;
+ return (myProfile.history || []).filter(e => now - histTime(e) <= weekMs).length;
 }
 
 function renderWeekStrip(){
@@ -1028,8 +1029,8 @@ function renderWeekStrip(){
  // rolling 7 days ending today — count how many times per day, not just
  // done/not-done, so the color can reflect how many rounds that day
  const countByDate = {};
- (myProfile.history || []).forEach(ts=>{
- const d = new Date(ts);
+ (myProfile.history || []).forEach(e=>{
+ const d = new Date(histTime(e));
  const key = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
  countByDate[key] = (countByDate[key] || 0) + 1;
  });
@@ -1073,8 +1074,8 @@ function renderCalendar(){
  const todayDate = now.getDate();
  // which day-numbers this month have at least one completion
  const doneDays = new Set();
- (myProfile.history || []).forEach(ts=>{
- const d = new Date(ts);
+ (myProfile.history || []).forEach(e=>{
+ const d = new Date(histTime(e));
  if(d.getFullYear() === year && d.getMonth() === month) doneDays.add(d.getDate());
  });
  const dowLabels = t({ko:['일','월','화','수','목','금','토'], en:['S','M','T','W','T','F','S'], zh:['日','一','二','三','四','五','六']});
@@ -1098,6 +1099,9 @@ function renderCalendar(){
 }
 
 function renderRecordsScreen(){
+ // 부위 비중도 여기서 같이 그린다. 화면을 켜기만 하고 렌더를 건너뛰면
+ // 빈 자리가 남는데, 그건 '이번 주 운동을 안 했다'로 읽힌다.
+ try{ renderBodyparts(); }catch(e){ console.error('renderBodyparts failed:', e); }
  renderCalendar();
  document.getElementById('rec-best-streak').textContent = (myProfile.bestStreakEver || 0) + t({ko:'일',en:'d',zh:'天'});
  // 큰 숫자 자리에 부연을 넣으면 44px 로 '0일(오늘 0회)' 가 되어 두 줄로 넘친다.
@@ -1344,6 +1348,46 @@ try{
 // any chance of calling a function before a const/let it depends on has
 // been declared, which is exactly what caused this bug before.)
 
+// history 항목은 두 모양이다 — 옛것은 숫자(시각), 새것은 {t, g}.
+// 읽는 곳마다 분기하면 한 군데를 빠뜨리므로 여기서 한 번만 편다.
+function histTime(entry){ return typeof entry === 'number' ? entry : (entry && entry.t) || 0; }
+
+// 최근 7일 동안 어느 부위를 얼마나 했나(FR-12).
+// 부위 정보가 없는 옛 기록은 세지 않는다 — 0으로 세면 비중이 실제보다 낮게 나온다.
+function weeklyBodyparts(){
+ const since = Date.now() - 7 * 86400000;
+ const tally = {};
+ let total = 0;
+ (myProfile.history || []).forEach(e => {
+ if(histTime(e) < since) return;
+ const g = (typeof e === 'object' && e.g) || null;
+ if(!g) return;
+ for(const [id, n] of Object.entries(g)){ tally[id] = (tally[id] || 0) + n; total += n; }
+ });
+ if(!total) return null;
+ return MUSCLE_GROUPS
+ .map(g => ({ id: g.id, label: g.label, pct: Math.round((tally[g.id] || 0) / total * 100) }))
+ .filter(x => x.pct > 0)
+ .sort((a, b) => b.pct - a.pct);
+}
+
+function renderBodyparts(){
+ const box = document.getElementById('bodyparts');
+ if(!box) return;
+ const rows = weeklyBodyparts();
+ if(!rows){
+ box.innerHTML = '<p class="dim-note">' + t(STATIC_UI.weekPartsEmpty) + '</p>';
+ return;
+ }
+ box.innerHTML = rows.map(r =>
+ '<div class="bp-row">' +
+ '<span class="bp-name">' + t(r.label) + '</span>' +
+ '<span class="bp-track"><i class="bp-fill" style="width:' + r.pct + '%"></i></span>' +
+ '<b class="bp-pct">' + r.pct + '%</b>' +
+ '</div>'
+ ).join('');
+}
+
 function recordCompletion(){
  const today = todayStr();
  const mKey = monthKeyStr();
@@ -1362,7 +1406,15 @@ function recordCompletion(){
  myProfile.monthlyCounts[mKey] = (myProfile.monthlyCounts[mKey] || 0) + 1;
 
  myProfile.history = myProfile.history || [];
- myProfile.history.unshift(Date.now());
+ // 예전에는 시각만 남겼다. 부위 비중(FR-12)을 세려면 어떤 동작을 했는지가 있어야 해서
+ // {t: 시각, g: {묶음: 세트수}} 로 바꿨다.
+ // 옛 기록은 숫자 그대로 남아 있으므로 읽는 쪽이 두 모양을 다 견뎌야 한다.
+ const groups = {};
+ (missions || []).forEach(m => {
+ const g = EX_TO_GROUP[m.ex.key];
+ if(g) groups[g] = (groups[g] || 0) + 1;
+ });
+ myProfile.history.unshift({ t: Date.now(), g: groups });
  myProfile.history = myProfile.history.slice(0, 50);
 
  saveProfile();

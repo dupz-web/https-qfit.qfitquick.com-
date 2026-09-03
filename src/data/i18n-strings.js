@@ -137,4 +137,6 @@ export const STATIC_UI = {
  retrySame: {ko:'방금 운동 다시', en:'Repeat that workout', zh:'重复刚才的训练'},
  retryNew: {ko:'새로 운동 정하기', en:'Pick a new workout', zh:'重新选择训练'},
  cancelBtn: {ko:'취소', en:'Cancel', zh:'取消'},
+ weekPartsLabel: {ko:'이번 주 운동 부위', en:'This week by body part', zh:'本周训练部位'},
+ weekPartsEmpty: {ko:'이번 주 기록이 쌓이면 여기에 나옵니다', en:"It'll show up once you've trained this week", zh:'本周有记录后会显示在这里'},
 };

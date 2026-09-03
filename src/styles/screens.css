@@ -318,3 +318,28 @@
 .quiz-progress .dot.active { background: var(--mint); }
 .quiz-step { display: flex; flex-direction: column; gap: var(--s-3); }
 .quiz-title { font-size: var(--t-xl); font-weight: 800; letter-spacing: -0.02em; }
+
+/* ── 이번 주 운동 부위 (FR-12) ─────────────────────────
+   최근 7일 동안 어느 부위를 얼마나 했나. 한 동작이 두 묶음에 들어 있을 수
+   있어서 먼저 나오는 하나에만 센다 — 양쪽에 세면 합이 100%를 넘는다. */
+.bodyparts { display: flex; flex-direction: column; gap: var(--s-3); }
+.bp-row { display: flex; align-items: center; gap: var(--s-3); }
+.bp-name { flex: none; width: 3.5em; font-size: var(--t-sm); color: var(--text-dim); }
+.bp-track {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.bp-fill { display: block; height: 100%; background: var(--mint); border-radius: var(--r-full); }
+.bp-pct {
+  flex: none;
+  width: 3em;
+  text-align: right;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-md);
+  font-weight: 700;
+}
+.dim-note { font-size: var(--t-sm); color: var(--text-dim); }
