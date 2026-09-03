@@ -19,19 +19,20 @@
   --t-xs: 0.8125rem;   /* 13px — 하한. 라벨·캡션 */
   --t-sm: 0.875rem;    /* 14px */
   --t-md: 0.9375rem;   /* 15px — 본문 기준선 */
-  --t-lg: 1.0625rem;   /* 17px */
-  --t-xl: 1.375rem;    /* 22px */
-  --t-2xl: 1.75rem;    /* 28px */
-  --t-display: clamp(2rem, 9vw, 2.75rem);   /* 화면 제목 */
-  --t-hero: clamp(2.75rem, 14vw, 4rem);     /* 로고·결과 점수 */
-  --t-huge: clamp(5rem, 30vw, 9rem);        /* 카운트다운 숫자 */
+  --t-lg: 1.125rem;    /* 18px */
+  --t-xl: 1.5rem;      /* 24px */
+  --t-2xl: 2rem;       /* 32px */
+  --t-3xl: 2.75rem;    /* 44px — 통계 숫자. 이게 커야 위계가 생긴다 */
+  --t-display: clamp(2.25rem, 10vw, 3rem);   /* 화면 제목 */
+  --t-hero: clamp(3.25rem, 17vw, 4.75rem);   /* 로고·결과 점수 */
+  --t-huge: clamp(6rem, 34vw, 10rem);        /* 카운트다운 숫자 */
 
   /* ── 여백 (4px 격자) ──────────────────────────────── */
   --s-1: 4px;  --s-2: 8px;   --s-3: 12px;  --s-4: 16px;
   --s-5: 20px; --s-6: 24px;  --s-8: 32px;  --s-10: 40px;
 
   /* ── 모서리 ──────────────────────────────────────── */
-  --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-full: 999px;
+  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-full: 999px;
 
   /* ── 터치 타겟 하한 ────────────────────────────────
    * Apple 44pt / Google 48dp. 지금 홈 메뉴 버튼이 25px, 배너 닫기가 17×20px 이라
@@ -51,13 +52,15 @@
 
 /* ===== 라이트 ===== */
 :root{
-  --bg: #eef2f6;
+  /* 배경을 회색으로 두고 카드를 흰색으로 얹으면 어디를 봐도 회색 위 회색이라
+     경중이 안 보인다. 바탕을 흰색으로 두고, 눌린 면에만 회색을 쓴다. */
+  --bg: #ffffff;
   --surface: #ffffff;
-  --surface-2: #e3e9ef;
-  --line: #ccd5dd;
+  --surface-2: #f4f5f7;
+  --line: #dcdfe5;
 
-  --text: #101619;
-  --text-dim: #4d5c66;
+  --text: #09090b;
+  --text-dim: #5a6169;
 
   /* 노랑은 밝은 바탕에서 글자로 못 쓴다(#ffd60a on #eef2f6 = 1.25:1).
    * 그래서 '칠하는 색'과 '글자로 쓰는 색'을 나눈다. 라이트에서 노랑 글자를
@@ -79,12 +82,12 @@
  * 시스템이 다크일 때. 손으로 라이트를 고른 경우([data-theme="light"])는 빼둔다. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]){
-    --bg: #0a0b0d;
-    --surface: #15171b;
-    --surface-2: #1f232a;
-    --line: #2c313a;
-    --text: #f1f3f5;
-    --text-dim: #98a2ad;
+    --bg: #000000;
+    --surface: #0d0d0f;
+    --surface-2: #17171a;
+    --line: #2b2b31;
+    --text: #fafafa;
+    --text-dim: #8f959d;
     --accent: #ffd60a;
     --on-accent: #16130a;
     --accent-text: #ffd60a;
@@ -99,12 +102,12 @@
 
 /* 손으로 고른 다크가 시스템 설정을 이긴다 */
 :root[data-theme="dark"]{
-  --bg: #0a0b0d;
-  --surface: #15171b;
-  --surface-2: #1f232a;
-  --line: #2c313a;
-  --text: #f1f3f5;
-  --text-dim: #98a2ad;
+  --bg: #000000;
+  --surface: #0d0d0f;
+  --surface-2: #17171a;
+  --line: #2b2b31;
+  --text: #fafafa;
+  --text-dim: #8f959d;
   --accent: #ffd60a;
   --on-accent: #16130a;
   --accent-text: #ffd60a;

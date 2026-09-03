@@ -1064,7 +1064,13 @@ function renderCalendar(){
 function renderRecordsScreen(){
  renderCalendar();
  document.getElementById('rec-best-streak').textContent = (myProfile.bestStreakEver || 0) + (LANG==='ko'?'일':'d');
- document.getElementById('rec-current-streak').textContent = (myProfile.currentStreak || 0) + (LANG==='ko' ? ('일(오늘 ' + todayCompletionCount() + '회)') : ('d (' + todayCompletionCount() + ' today)'));
+ // 큰 숫자 자리에 부연을 넣으면 44px 로 '0일(오늘 0회)' 가 되어 두 줄로 넘친다.
+  // 숫자는 숫자대로 두고 부연만 작게 떼어 붙인다.
+  document.getElementById('rec-current-streak').innerHTML =
+    (myProfile.currentStreak || 0) + (LANG==='ko' ? '일' : 'd') +
+    '<span class="val-sub">' +
+    (LANG==='ko' ? ('오늘 ' + todayCompletionCount() + '회') : (todayCompletionCount() + ' today')) +
+    '</span>';
  document.getElementById('rec-week').textContent = weeklyCompletionCount() + (LANG==='ko'?'회':'');
  document.getElementById('rec-month').textContent = (myProfile.monthlyCounts[monthKeyStr()] || 0) + (LANG==='ko'?'회':'');
  document.getElementById('rec-total').textContent = (myProfile.totalCompletions || 0) + (LANG==='ko'?'회':'');

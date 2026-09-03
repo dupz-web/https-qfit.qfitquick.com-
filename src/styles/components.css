@@ -1,58 +1,83 @@
 /* 여러 화면이 같이 쓰는 부품.
  *
- * 규칙 셋:
- *  1. 누르는 것은 전부 높이 var(--tap) 이상. 예전에는 홈 메뉴 버튼이 25px,
- *     배너 닫기가 17×20px 이라 운동 직후 땀 찬 손가락으로는 못 눌렀다.
- *  2. 색은 토큰만. 여기서 hex 를 적기 시작하면 다시 46종이 된다.
- *  3. 노랑으로 칠할 때는 --on-accent 를 얹는다. 노랑 위 흰 글자는 안 보인다.
+ * 앞선 판이 "AI 티"가 났던 이유는 분명하다: 모든 것을 똑같이 둥근 카드에 담고,
+ * 간격을 균일하게 두고, 회색 위에 회색 테두리를 얹었다. 그러면 제목도 숫자도
+ * 버튼도 같은 무게로 읽혀서 어디를 봐야 하는지 알 수 없다.
+ *
+ * 그래서 규칙을 바꾼다:
+ *  1. 상자를 거의 안 쓴다. 묶는 일은 여백과 얇은 구분선이 한다.
+ *     상자를 쓰는 곳은 "안쪽이 스스로 하나의 덩어리인 것"뿐이다.
+ *  2. 위계는 크기 차이로 만든다. 숫자는 아주 크게, 라벨은 아주 작게.
+ *     둘이 비슷하면 둘 다 안 읽힌다.
+ *  3. 목록은 카드 여러 장이 아니라 구분선으로 나눈 한 덩어리다.
+ *  4. 색은 뜻이 있을 때만. 노랑은 한 화면에 한 번.
  */
 
-/* ── 글 ─────────────────────────────────────────────── */
+/* ── 화면 머리 ─────────────────────────────────────────
+   작은 대문자 라벨 + 큰 제목. 이 둘의 크기 차이가 화면의 기준자가 된다. */
 .eyebrow {
   font-size: var(--t-xs);
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.lb-title {
+  font-size: var(--t-display);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+/* eyebrow 바로 뒤의 제목은 붙여 놓는다 — 한 덩어리로 읽혀야 한다 */
+.eyebrow + .lb-title { margin-top: calc(var(--s-2) * -1); }
+
+.section-label {
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-dim);
 }
 
-.lb-title {
-  font-size: var(--t-display);
+.tagline,
+.sub { font-size: var(--t-sm); color: var(--text-dim); }
+
+.hero-line {
+  font-size: var(--t-xl);
   font-weight: 700;
-  line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--text);
 }
 
-.section-label {
-  font-size: var(--t-sm);
-  font-weight: 700;
-  color: var(--text-dim);
-}
+/* ── 버튼 ─────────────────────────────────────────────
+   종류가 셋뿐이다: 채운 것, 테두리만 있는 것, 글자만 있는 것.
+   넷째를 만들고 싶어지면 그건 위계가 흐려졌다는 뜻이다. */
 
-.tagline,
-.sub {
-  font-size: var(--t-sm);
-  color: var(--text-dim);
-}
-
-.hero-line {
+/* (1) 채운 것 — 화면에서 제일 중요한 행동 하나 */
+.primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 58px;
+  padding: var(--s-4) var(--s-6);
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  color: var(--on-accent);
   font-size: var(--t-lg);
-  font-weight: 700;
-  color: var(--text);
-  text-align: center;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) linear;
 }
+.primary:active { transform: scale(0.98); opacity: 0.9; }
 
-/* ── 버튼 ────────────────────────────────────────────
-   바탕이 되는 모양 하나를 만들고 색만 갈아 끼운다. */
-.primary,
+/* (2) 테두리만 — 나란히 놓고 고르는 것들 */
 .btn-restart,
-.btn-home,
 .mode-btn,
-.quiz-btn,
 .duration-btn,
-.feature-btn,
-.menu-btn,
+.quiz-btn,
 .group-btn,
 .ex-chip,
 .repeat-chip,
@@ -60,204 +85,173 @@
 .jump-to-injury-btn,
 .install-action-btn,
 .auth-tab,
-.link-btn,
-.back-link-btn {
+.feature-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--s-2);
   min-height: var(--tap);
   padding: var(--s-3) var(--s-4);
-  border-radius: var(--r-md);
-  font-size: var(--t-md);
-  font-weight: 700;
-  text-align: center;
-  background: var(--surface);
-  color: var(--text);
   border: 1px solid var(--line);
-  transition: transform var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) linear;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text);
+  font-size: var(--t-md);
+  font-weight: 600;
+  transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) linear;
 }
-.primary:active,
 .btn-restart:active,
-.btn-home:active,
 .mode-btn:active,
-.quiz-btn:active,
 .duration-btn:active,
-.feature-btn:active,
-.menu-btn:active,
+.quiz-btn:active,
 .group-btn:active,
 .ex-chip:active,
 .repeat-chip:active,
 .save-routine-btn:active,
 .jump-to-injury-btn:active,
 .install-action-btn:active,
-.link-btn:active,
-.back-link-btn:active {
-  transform: scale(0.97);
-  background: var(--surface-2);
-}
-
-/* 화면에서 제일 중요한 행동 하나. 한 화면에 둘 이상 두지 말 것 —
-   둘이 되는 순간 어느 쪽도 제일 중요해 보이지 않는다. */
-.primary {
-  width: 100%;
-  min-height: 56px;
-  padding: var(--s-4) var(--s-6);
-  font-size: var(--t-lg);
-  background: var(--accent);
-  color: var(--on-accent);
-  border: none;
-  border-radius: var(--r-lg);
-}
-.primary:active { background: var(--accent); }
+.feature-btn:active { transform: scale(0.98); background: var(--surface-2); }
 
 .btn-restart,
 .save-routine-btn { width: 100%; }
-
-.btn-home {
-  width: 100%;
-  background: transparent;
-  color: var(--text-dim);
-  border-color: transparent;
-}
-
-/* 부차적인 이동. 버튼처럼 보이되 무게를 뺀다. */
-.link-btn,
-.back-link-btn {
-  background: transparent;
-  border-color: transparent;
-  color: var(--text-dim);
-  font-weight: 400;
-  font-size: var(--t-sm);
-}
-.back-link-btn { align-self: flex-start; }
-
-.menu-btn {
-  flex: 1;
-  /* 예전에 font-size 9.5px / padding 6px 3px 이라 높이가 25px 이었다.
-     홈에서 로그인·설정으로 가는 유일한 길인데 그 크기였다. */
-  font-size: var(--t-sm);
-  font-weight: 400;
-  color: var(--text-dim);
-}
-
-/* 아이콘을 뺐으므로 글자 한 줄짜리 버튼이다. 세로 2단 배치를 남겨 두면
-   빈 공간만 큰 상자가 된다. */
-.feature-btn { flex: 1; font-size: var(--t-md); }
-.feature-btn-recovery { color: var(--cool); }
-.feature-btn-video { color: var(--accent-text); }
-
-.mode-btn { flex: 1; font-size: var(--t-md); }
-.quiz-btn {
-  width: 100%;
-  justify-content: flex-start;
-  min-height: 56px;
-  font-size: var(--t-md);
-  text-align: left;
-}
-
-.duration-btn { flex: 1; flex-direction: column; gap: 2px; font-size: var(--t-sm); }
+.mode-btn,
+.feature-btn { flex: 1; }
+.quiz-btn { width: 100%; justify-content: flex-start; min-height: 58px; text-align: left; }
+.duration-btn { flex: 1; flex-direction: column; gap: 2px; }
 .duration-btn .sub { font-size: var(--t-xs); font-weight: 400; }
+.group-btn,
+.ex-chip,
+.repeat-chip { border-radius: var(--r-full); font-size: var(--t-sm); }
+.repeat-chip { width: 100%; }
+.jump-to-injury-btn { width: 100%; color: var(--cool); border-color: var(--cool); }
+.auth-tab { flex: 1; border-radius: var(--r-full); }
+/* 기능 버튼에 각각 색을 주면 한 화면에 강조가 셋이 된다.
+   SOS 만 성격을 남기고(응급이라 찾을 수 있어야 한다) 나머지는 본문색. */
+.feature-btn-recovery { color: var(--cool); }
+.feature-btn-video { color: var(--text); }
+.install-action-btn { min-height: 38px; border-radius: var(--r-full); font-size: var(--t-sm); }
+
+/* 고른 것은 채워서 뒤집는다. 노랑을 여기 쓰면 화면에 노랑이 둘이 된다. */
 .duration-btn.active,
 .group-btn.active,
 .ex-chip.active,
 .auth-tab.active {
-  background: var(--accent);
-  color: var(--on-accent);
-  border-color: transparent;
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
 }
-.duration-btn.active .sub { color: var(--on-accent); opacity: 0.75; }
+.duration-btn.active .sub { color: var(--bg); opacity: 0.7; }
 
-.group-btn,
-.ex-chip,
-.repeat-chip {
-  min-height: var(--tap);
-  padding: var(--s-2) var(--s-4);
-  border-radius: var(--r-full);
-  font-size: var(--t-sm);
-}
-.repeat-chip { width: 100%; }
-
-.jump-to-injury-btn { width: 100%; color: var(--cool); }
-
-.auth-tab { flex: 1; font-size: var(--t-md); }
-
-/* 화면 모서리의 작은 조작 버튼 */
-.mute-btn,
-.lang-btn,
-.pause-btn {
-  position: absolute;
-  top: calc(var(--s-4) + env(safe-area-inset-top));
-  z-index: 4;
-  display: flex;
+/* (3) 글자만 — 부차적인 이동 */
+.link-btn,
+.back-link-btn,
+.btn-home {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* 44px 하한. 예전에는 36px 이었다. */
-  width: var(--tap);
-  height: var(--tap);
-  border-radius: var(--r-full);
-  background: var(--surface);
-  border: 1px solid var(--line);
+  gap: var(--s-2);
+  min-height: var(--tap);
+  padding: var(--s-2) var(--s-3);
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: var(--t-sm);
+  font-weight: 500;
+}
+.btn-home { width: 100%; }
+.back-link-btn { align-self: flex-start; padding-left: 0; }
+.link-btn:active,
+.back-link-btn:active,
+.btn-home:active { color: var(--text); }
+
+/* ── 목록 줄 ──────────────────────────────────────────
+   카드 여러 장 대신 구분선 하나. 항목이 늘어도 화면이 조각나지 않는다. */
+.menu-box,
+.settings-list,
+.lb-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+.menu-btn,
+.settings-row,
+.routine-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 56px;
+  padding: var(--s-3) 0;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
   color: var(--text);
   font-size: var(--t-md);
-  cursor: pointer;
+  font-weight: 500;
+  text-align: left;
 }
-.mute-btn { left: calc(var(--s-4) + env(safe-area-inset-left)); }
-.lang-btn {
-  left: calc(var(--s-4) + var(--tap) + var(--s-2) + env(safe-area-inset-left));
-  width: auto;
-  min-width: var(--tap);
-  padding: 0 var(--s-3);
-  font-size: var(--t-sm);
-  font-weight: 700;
+.settings-row { justify-content: space-between; }
+/* 눌러서 어디론가 가는 줄에는 방향을 알려 준다 */
+.menu-btn::after {
+  content: '';
+  margin-left: auto;
+  width: 7px;
+  height: 7px;
+  border-right: 1.6px solid var(--text-dim);
+  border-top: 1.6px solid var(--text-dim);
+  transform: rotate(45deg);
 }
-.pause-btn { right: calc(var(--s-4) + env(safe-area-inset-right)); }
+.menu-btn:active,
+.settings-row:active { background: var(--surface-2); }
 
-/* ── 카드 ─────────────────────────────────────────────
-   그림자 대신 경계선으로 면을 나눈다. 예전에는 검정 기반 그림자가
-   밝은 배경 위에서 탁하게 번졌다. */
-.setup-card,
+.routine-row > span { flex: 1; min-width: 0; }
+.routine-row button {
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0 var(--s-2);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  color: var(--text-dim);
+}
+.routine-row button.danger { color: var(--danger); }
+
+.lb-empty,
+.search-empty {
+  padding: var(--s-8) 0;
+  color: var(--text-dim);
+  font-size: var(--t-sm);
+}
+
+/* ── 상자를 쓰는 몇 곳 ─────────────────────────────────
+   "안쪽이 스스로 하나의 덩어리"인 것만. 늘리지 말 것. */
 .mode-card,
 .one-min-panel,
-.recovery-card,
 .calendar-card,
-.record-box,
-.result-stat-box,
-.xp-bottle-card,
-.neon-avatar-card,
-.daily-challenge-card,
-.badge-progress,
-.settings-list,
-.injury-accordion {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
+.injury-accordion,
+.daily-challenge-card {
   padding: var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
 }
 
+.setup-card,
+.mode-card { display: flex; flex-direction: column; gap: var(--s-3); }
+.mode-card-title {
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.mode-card-divider { height: 1px; background: var(--line); border: none; margin: var(--s-1) 0; }
+
 .feature-box,
-.menu-box,
 .mode-grid,
 .group-row,
 .duration-row,
 .setcount-row,
-.auth-tabs {
-  display: flex;
-  gap: var(--s-2);
-}
-.feature-box,
-.menu-box { background: transparent; border-color: transparent; padding: 0; }
+.auth-tabs { display: flex; gap: var(--s-2); }
 .group-row { flex-wrap: wrap; }
-
-.mode-card { display: flex; flex-direction: column; gap: var(--s-3); }
-.mode-card-title { font-size: var(--t-sm); font-weight: 700; color: var(--text-dim); }
-.mode-card-divider {
-  height: 1px;
-  background: var(--line);
-  border: none;
-  margin: var(--s-1) 0;
-}
 .mode-grid > * { flex: 1; }
 
 /* 눌러서 여는 패널. "버튼 안에 기능을 숨긴다"는 게 이것이다 —
@@ -269,150 +263,113 @@
   animation: panelReveal var(--dur) var(--ease-out);
 }
 @keyframes panelReveal {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
 
-.settings-list { padding: 0; }
-.settings-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-3);
-  min-height: 56px;
-  padding: var(--s-3) var(--s-4);
-  border-bottom: 1px solid var(--line);
-}
-.settings-row:last-child { border-bottom: none; }
-
-/* ── 입력 ─────────────────────────────────────────── */
+/* ── 입력 ─────────────────────────────────────────────
+   테두리를 두르지 않고 아래 선 하나로. 화면에서 상자가 하나 줄어든다. */
 .nickname-input,
 .auth-input,
 .search-input,
 .ex-search-input,
 .routine-name-input,
-.custom-duration-input,
 .weight-input-row input {
   width: 100%;
   min-height: var(--tap);
-  padding: var(--s-3) var(--s-4);
-  border-radius: var(--r-md);
-  background: var(--surface-2);
-  border: 1px solid var(--line);
+  padding: var(--s-3) 0;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
   color: var(--text);
   font: inherit;
-  font-size: var(--t-md);
+  font-size: var(--t-lg);
+}
+.custom-duration-input {
+  width: 84px;
+  min-height: var(--tap);
+  padding: var(--s-2);
+  text-align: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font: inherit;
 }
 .nickname-input::placeholder,
 .auth-input::placeholder,
 .search-input::placeholder,
 .ex-search-input::placeholder,
 .routine-name-input::placeholder,
-.weight-input-row input::placeholder {
-  color: var(--text-dim);
-}
+.weight-input-row input::placeholder { color: var(--text-dim); }
 .nickname-input:focus,
 .auth-input:focus,
 .search-input:focus,
 .ex-search-input:focus,
 .routine-name-input:focus,
 .custom-duration-input:focus,
-.weight-input-row input:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-.custom-duration-input { width: 92px; text-align: center; }
+.weight-input-row input:focus { outline: none; border-color: var(--text); }
 
 .nickname-hint,
 .duration-hint,
 .set-note,
 .xp-bottle-hint,
-.recovery-note {
-  font-size: var(--t-sm);
-  color: var(--text-dim);
-}
+.recovery-note { font-size: var(--t-sm); color: var(--text-dim); }
 
 .weight-input-row,
 .save-routine-row,
 .custom-toggle,
-.warmup-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-}
+.warmup-toggle { display: flex; align-items: center; gap: var(--s-3); }
+
 /* flex 자식은 기본이 min-width:auto 라, 옆의 input 이 자리를 다 먹으면
    글자가 세로로 쪼개진다. 실제로 '체중' 이 '체'/'중' 두 줄로 접혔다. */
-.weight-input-row > span { flex: none; white-space: nowrap; color: var(--text-dim); }
+.weight-input-row > span {
+  flex: none;
+  white-space: nowrap;
+  color: var(--text-dim);
+  font-size: var(--t-sm);
+}
 .weight-input-row input { flex: 1; min-width: 0; }
+
 .custom-toggle,
 .warmup-toggle {
-  min-height: var(--tap);
+  justify-content: space-between;
+  min-height: 56px;
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--line);
   font-size: var(--t-md);
   cursor: pointer;
 }
-.warmup-toggle { justify-content: space-between; }
 .custom-toggle input[type='checkbox'],
 .warmup-toggle input[type='checkbox'] {
   width: 22px;
   height: 22px;
-  accent-color: var(--accent);
   flex: none;
+  accent-color: var(--accent);
 }
 .save-routine-row { flex-wrap: wrap; }
 .save-routine-msg { font-size: var(--t-sm); color: var(--success); }
 
-.auth-form { display: flex; flex-direction: column; gap: var(--s-3); }
+.auth-form { display: flex; flex-direction: column; gap: var(--s-4); }
 .auth-error { font-size: var(--t-sm); color: var(--danger); min-height: 1.4em; }
 .account-badge { font-size: var(--t-md); color: var(--text-dim); }
-.account-badge b { color: var(--text); }
+.account-badge b { color: var(--text); font-weight: 700; }
 
 .or-divider {
   display: flex;
   align-items: center;
   gap: var(--s-3);
   color: var(--text-dim);
-  font-size: var(--t-sm);
+  font-size: var(--t-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 .or-divider::before,
-.or-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--line);
-}
+.or-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 
-/* ── 목록 ─────────────────────────────────────────── */
-.lb-list { display: flex; flex-direction: column; gap: var(--s-2); }
-.lb-empty,
-.search-empty {
-  padding: var(--s-6) var(--s-4);
-  text-align: center;
-  color: var(--text-dim);
-  font-size: var(--t-sm);
-}
-.routine-row {
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-  padding: var(--s-2) var(--s-3);
-  border-radius: var(--r-md);
-  background: var(--surface);
-  border: 1px solid var(--line);
-}
-.routine-row > span { flex: 1; min-width: 0; }
-.routine-row button {
-  /* 삭제 버튼이 있는 줄이다. 예전에는 높이 30px 이라 오탭이 나기 쉬웠다. */
-  min-height: var(--tap);
-  min-width: var(--tap);
-  padding: 0 var(--s-3);
-  border-radius: var(--r-sm);
-  font-size: var(--t-sm);
-  color: var(--text-dim);
-}
-.routine-row button.danger { color: var(--danger); }
-
-/* ── 배너 ─────────────────────────────────────────────
-   전부 같은 모양을 쓰고 왼쪽 색띠로만 성격을 구분한다. */
+/* ── 알림 줄 ───────────────────────────────────────────
+   배너를 카드로 만들지 않는다. 왼쪽 색 막대 하나로 성격만 말한다. */
 .comeback-banner,
 .weekend-banner,
 .challenge-invite,
@@ -421,23 +378,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--s-2);
-  padding: var(--s-3) var(--s-4);
-  border-radius: var(--r-md);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--accent);
+  padding: var(--s-2) 0 var(--s-2) var(--s-4);
+  border-left: 2px solid var(--accent);
   font-size: var(--t-sm);
-  color: var(--text);
+  color: var(--text-dim);
   text-align: left;
 }
-.weekend-banner { border-left-color: var(--accent); }
 .comeback-banner { border-left-color: var(--cool); }
 .challenge-invite { border-left-color: var(--hot); }
 .result-recovery-tip { border-left-color: var(--cool); }
 .comeback-banner b,
-.result-recovery-tip b { color: var(--text); }
-.ci-title { font-weight: 700; font-size: var(--t-md); }
-.ci-sub { color: var(--text-dim); }
+.result-recovery-tip b { color: var(--text); font-weight: 700; }
+.ci-title { font-weight: 700; font-size: var(--t-md); color: var(--text); }
 .challenge-invite button {
   align-self: flex-start;
   min-height: var(--tap);
@@ -448,25 +400,10 @@
   font-weight: 700;
 }
 
-.install-banner-main {
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-}
-.install-icon { font-size: var(--t-lg); }
-.install-banner-text { flex: 1; min-width: 0; }
-.install-banner-detail { color: var(--text-dim); font-size: var(--t-xs); }
-.install-action-btn {
-  min-height: var(--tap);
-  padding: 0 var(--s-4);
-  background: var(--accent);
-  color: var(--on-accent);
-  border: none;
-  border-radius: var(--r-full);
-  font-size: var(--t-sm);
-}
+.install-banner-main { display: flex; align-items: center; gap: var(--s-3); }
+.install-banner-text { flex: 1; min-width: 0; color: var(--text); }
+.install-banner-detail { font-size: var(--t-xs); }
 .install-dismiss-btn {
-  /* 예전에는 padding 2px 4px 이라 17×20px 이었다. 사실상 못 누른다. */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -475,19 +412,50 @@
   flex: none;
   border-radius: var(--r-full);
   color: var(--text-dim);
-  font-size: var(--t-md);
 }
 
-.daily-challenge-card {
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-}
-.daily-challenge-card.done { border-color: var(--success); }
-.dc-icon { font-size: var(--t-2xl); line-height: 1; }
+.daily-challenge-card { display: flex; align-items: center; gap: var(--s-3); }
+.daily-challenge-card.done { opacity: 0.6; }
 .dc-text { flex: 1; min-width: 0; }
 .dc-title { font-weight: 700; }
 .dc-sub { font-size: var(--t-sm); color: var(--text-dim); }
+
+/* ── 화면 모서리 조작 버튼 ─────────────────────────────
+   테두리 없는 아이콘 버튼. 동그란 상자를 두르면 그것부터 눈에 들어온다. */
+.mute-btn,
+.lang-btn,
+.pause-btn,
+.video-lightbox-close {
+  position: absolute;
+  top: calc(var(--s-3) + env(safe-area-inset-top));
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  border: none;
+  border-radius: var(--r-full);
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.mute-btn { left: calc(var(--s-3) + env(safe-area-inset-left)); }
+.lang-btn {
+  left: calc(var(--s-3) + var(--tap) + env(safe-area-inset-left));
+  width: auto;
+  min-width: var(--tap);
+  padding: 0 var(--s-2);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+.pause-btn,
+.video-lightbox-close { right: calc(var(--s-3) + env(safe-area-inset-right)); }
+.mute-btn:active,
+.lang-btn:active,
+.pause-btn:active { background: var(--surface-2); }
 
 /* ── 덮는 것 ─────────────────────────────────────────── */
 .pause-overlay,
@@ -497,12 +465,14 @@
   inset: 0;
   z-index: 20;
   display: none;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--s-5);
+  gap: var(--s-4);
+  padding: var(--s-6);
   background: var(--overlay);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .pause-overlay.on,
 .video-lightbox.on,
@@ -514,15 +484,14 @@
   max-width: 340px;
   display: flex;
   flex-direction: column;
-  gap: var(--s-3);
+  gap: var(--s-4);
   padding: var(--s-6);
   border-radius: var(--r-lg);
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: var(--bg);
   text-align: center;
 }
 .pause-title,
-.inapp-title { font-size: var(--t-xl); font-weight: 700; }
+.inapp-title { font-size: var(--t-xl); font-weight: 800; letter-spacing: -0.02em; }
 .inapp-text { font-size: var(--t-md); color: var(--text-dim); }
 .inapp-hint { font-size: var(--t-sm); color: var(--text-dim); }
 .inapp-hint b { color: var(--text); }
@@ -537,20 +506,16 @@
   background: var(--accent);
   mix-blend-mode: screen;
 }
-.confetti-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 16;
-  pointer-events: none;
-  overflow: hidden;
-}
+.confetti-layer { position: fixed; inset: 0; z-index: 16; pointer-events: none; overflow: hidden; }
 .confetti-piece {
   position: absolute;
-  width: 8px;
-  height: 14px;
-  border-radius: 2px;
+  width: 7px;
+  height: 12px;
+  border-radius: 1px;
   animation: confettiFall 2.4s linear forwards;
 }
 @keyframes confettiFall {
   to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
 }
+
+.ci-sub { font-size: var(--t-sm); color: var(--text-dim); }
