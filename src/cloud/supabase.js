@@ -9,6 +9,24 @@
 //  - 이 기기에 로그인 흔적이 있을 때 (부팅 시 세션 확인)
 //  - 사용자가 실제로 로그인·회원가입을 누를 때
 
+// ───────────────────────────────────────────────────────────────
+// 잠금. 지금은 클라우드를 쓰지 않는다.
+//
+// 왜 지웠는지가 아니라 왜 잠갔는지가 중요하다. 지금 이 자리는
+// '안 쓰는 기능' 이 아니라 **켜져 있으면 기록을 지우는 기능** 이다:
+// applyCloudProfile 이 서버 행으로 프로필을 통째로 갈아 끼우는데
+// profiles 테이블에 xp·achievements·totalCalories·totalWorkoutSeconds
+// 칼럼이 없다. 로그인하면 그 값들이 0 이 되고 서버에 백업도 없다.
+//
+// 그래서 화면만 감추면 모자라다. 이 기기에 예전 로그인 흔적이 남아
+// 있으면 앱을 여는 것만으로 checkSupabaseSession 이 같은 길을 탄다.
+// 문을 여기 하나로 모아 둔 이유가 그것이다 — 부르는 쪽 열 몇 군데에
+// if 를 뿌리면 언젠가 한 곳을 빠뜨린다.
+//
+// 되살리는 법: 이 상수를 true 로. 그 전에 profile jsonb 칼럼과
+// 필드별 병합(max·합집합)을 먼저 넣어야 한다. 그 전에 켜면 같은 사고다.
+const CLOUD_ENABLED = false;
+
 const URL = 'https://pdmjlleaheqyldhitkty.supabase.co';
 // publishable(anon) 키. 공개하라고 만든 키라 저장소에 있어도 정상이다.
 // 다만 이 키만으로 남의 기록을 읽을 수 없게 하는 것은 서버의 RLS 정책이다 —
@@ -22,6 +40,7 @@ let loading = null;
  *  Supabase 는 세션을 localStorage 의 sb-<프로젝트>-auth-token 에 둔다.
  *  이걸 먼저 보면, 로그인한 적 없는 사람은 SDK 를 아예 안 받는다. */
 export function hasStoredSession() {
+  if (!CLOUD_ENABLED) return false;
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
@@ -36,6 +55,7 @@ export function hasStoredSession() {
 /** 클라이언트를 돌려준다. 못 받으면 null — 부르는 쪽은 그 경우를 견뎌야 한다.
  *  로그인이 안 되는 것과 앱이 안 도는 것은 다른 일이다. */
 export async function getSupabase() {
+  if (!CLOUD_ENABLED) return null;
   if (client) return client;
   if (!loading) {
     loading = import('@supabase/supabase-js')
@@ -54,5 +74,10 @@ export async function getSupabase() {
 
 /** 이미 받아 둔 경우에만 true. 받으러 가지 않는다. */
 export function isSupabaseReady() {
-  return !!client;
+  return CLOUD_ENABLED && !!client;
+}
+
+/** 클라우드가 켜져 있나. 화면이 계정 입구를 감출지 정하는 데 쓴다. */
+export function isCloudEnabled() {
+  return CLOUD_ENABLED;
 }

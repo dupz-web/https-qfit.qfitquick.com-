@@ -7,7 +7,7 @@
 // "오프라인이 안 되는데 화면은 멀쩡한" 상태를 검사로는 못 잡는다.
 import { chromium } from 'playwright';
 
-export const DEFAULT_URL = process.env.QFIT_URL || 'https://localhost:5173/';
+export const DEFAULT_URL = process.env.QFIT_URL || 'http://localhost:5173/';
 
 export const launch = () =>
   chromium.launch({ args: ['--ignore-certificate-errors'] });

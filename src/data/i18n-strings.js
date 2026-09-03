@@ -153,6 +153,7 @@ export const STATIC_UI = {
  injuryIntro: {ko:'운동 중이나 후에 통증이 느껴지면 해당 부위를 눌러서 원인·대처법을 확인해보십시오.', en:'If something hurts during or after a workout, tap the body part to see causes and what to do.', zh:'训练中或训练后感到疼痛，点击对应部位查看原因与处理方法。'},
  recordsEmpty: {ko:'아직 기록이 없어요 — 1분만 하면 여기에 첫 칸이 채워집니다', en:"No records yet — one minute and the first one lands here", zh:'还没有记录 — 只要练一分钟，这里就会出现第一条'},
  routinesEmptyNew: {ko:'저장된 루틴이 없어요 — 설정에서 저장을 켜면 여기 쌓입니다', en:'No saved routines — turn on saving in setup and they collect here', zh:'还没有保存的方案 — 在设置中开启保存后会累积在这里'},
+ localOnlyNote: {ko:'기록은 이 기기에만 저장됩니다.', en:'Your records are stored on this device only.', zh:'记录仅保存在本设备上。'},
  searchEmptyQuoted: {ko:"'%s'에 맞는 동작이 없어요", en:"Nothing matches '%s'", zh:'没有匹配“%s”的动作'},
  clearFilter: {ko:'검색 지우기', en:'Clear search', zh:'清除搜索'},
  pickAtLeastOne: {ko:'동작을 1개 이상 고르세요', en:'Pick at least one exercise', zh:'请至少选择一个动作'},

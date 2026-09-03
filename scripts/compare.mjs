@@ -5,7 +5,7 @@
 import { launch, IPHONE_12 } from './_browser.mjs';
 
 const A = process.env.URL_A || 'http://localhost:5199/'; // 원본
-const B = process.env.URL_B || 'https://localhost:5173/'; // 재구조화
+const B = process.env.URL_B || 'http://localhost:5173/'; // 재구조화
 
 const SCREENS = [
   'start-screen', 'more-screen', 'ai-quiz-screen', 'settings-screen',

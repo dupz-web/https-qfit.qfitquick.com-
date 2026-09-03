@@ -11,11 +11,6 @@ import './styles/game.css';
 import './styles/result.css';
 import './styles/figures.css';
 
-// 아이폰 화면 위 콘솔. 개발 빌드에만 들어간다 — 프로덕션에서는 이 블록이 통째로 사라진다.
-if (import.meta.env.DEV) {
-  import('./dev/console.js');
-}
-
 import './app.js';
 import { t } from './app.js';
 import { paintIcons } from './ui/icons.js';

@@ -1,6 +1,6 @@
 import { ICON } from './ui/icons.js';
 import { openSheet, closeSheet } from './ui/sheet.js';
-import { getSupabase, hasStoredSession, isSupabaseReady } from './cloud/supabase.js';
+import { getSupabase, hasStoredSession, isSupabaseReady, isCloudEnabled } from './cloud/supabase.js';
 import * as reminder from './notify/reminder.js';
 import { RECOVERY_CARDS, INJURY_GUIDES } from './data/recovery.js';
 // Q-fit 앱 본체. legacy/index.html 의 IIFE 본문을 그대로 옮긴 것이다.
@@ -249,6 +249,23 @@ let currentUserId = null;
 
 const accountScreen = document.getElementById('account-screen');
 const openAccountBtn = document.getElementById('open-account-btn');
+// 클라우드를 잠갔으면 들어가는 문도 없앤다. 눌러도 아무 일이 없는 버튼은
+// 고장으로 읽힌다. 마크업에서 지우지 않고 감추는 건, 스위치 하나를
+// 되돌리면 그대로 돌아오게 하기 위해서다.
+if(openAccountBtn && !isCloudEnabled()) openAccountBtn.hidden = true;
+// 그리고 그 사실을 말한다. 로그인이 사라지면 기록이 어디 있는지가
+// 화면 어디에도 안 적혀 있게 되는데, 브라우저 자료를 지우면 그날로
+// 끝이라 조용히 두면 안 된다.
+if(!isCloudEnabled()){
+ const box = openAccountBtn && openAccountBtn.closest('.menu-box');
+ if(box && !document.getElementById('local-only-note')){
+  const note = document.createElement('p');
+  note.id = 'local-only-note';
+  note.className = 'sub';
+  note.dataset.i18n = 'localOnlyNote';
+  box.insertAdjacentElement('afterend', note);
+ }
+}
 const accountBackBtn = document.getElementById('account-back-btn');
 const flashOverlay = document.getElementById('flash-overlay');
 
