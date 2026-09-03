@@ -30,15 +30,25 @@ function t(obj){
  if(typeof obj === 'string') return obj;
  return obj[LANG] || obj.ko || '';
 }
+// 언어는 셋이다. 버튼은 '다음에 갈 언어'를 보여 준다 —
+// 지금 언어를 보여 주면 누르면 뭐가 되는지 알 수 없다.
+const LANGS = ['ko', 'en', 'zh'];
+const LANG_LABEL = { ko: '한글', en: 'EN', zh: '中文' };
+
+function nextLang(){
+ return LANGS[(LANGS.indexOf(LANG) + 1) % LANGS.length];
+}
+
 function setLang(lang){
- LANG = lang;
- try{ localStorage.setItem('wodrush_lang_v1', lang); }catch(e){}
+ LANG = LANGS.includes(lang) ? lang : 'ko';
+ try{ localStorage.setItem('wodrush_lang_v1', LANG); }catch(e){}
+ document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : LANG;
  applyStaticTranslations();
  renderExGrid();
  renderGroupRow();
  if(typeof updateBestBox === 'function') updateBestBox();
  const lb = document.getElementById('lang-btn');
- if(lb) lb.textContent = LANG === 'ko' ? 'EN' : '한글';
+ if(lb) lb.textContent = LANG_LABEL[nextLang()];
 }
 
 
@@ -161,9 +171,10 @@ function updateSetNote(){
  const setNote = document.querySelector('.set-note');
  if(!setNote) return;
  const restAt = Math.min(Math.floor(selectedTotalSets/2), selectedTotalSets-2);
- setNote.textContent = LANG==='ko'
- ? ('· 총 ' + selectedTotalSets + '세트 (' + restAt + '세트 후 휴식)')
- : ('· ' + selectedTotalSets + ' sets total (rest after ' + restAt + ')');
+ setNote.textContent = t({
+ ko:'· 총 ' + selectedTotalSets + '세트 (' + restAt + '세트 후 휴식)',
+ en:'· ' + selectedTotalSets + ' sets total (rest after ' + restAt + ')',
+ zh:'· 共' + selectedTotalSets + '组（第' + restAt + '组后休息）'});
 }
 
 // ---------- STATE ----------
@@ -238,7 +249,6 @@ const moreScreen = document.getElementById('more-screen');
 const openVideoGalleryBtn = document.getElementById('open-video-gallery-btn');
 const videoGalleryBackBtn = document.getElementById('video-gallery-back-btn');
 const videoGalleryGrid = document.getElementById('video-gallery-grid');
-const resultChallengeBtn = document.getElementById('result-challenge-btn');
 const shareBtn = document.getElementById('share-btn');
 const historyList = document.getElementById('history-list');
 
@@ -464,7 +474,7 @@ try{
  }
  if(quitBtn && pauseOverlay){
  quitBtn.addEventListener('click', ()=>{
- const msg = LANG==='ko' ? '정말 운동을 종료할까요? 지금까지 기록은 저장되지 않아요.' : "Quit this workout? Today's progress won't be saved.";
+ const msg = t({ko:'정말 운동을 종료할까요? 지금까지 기록은 저장되지 않아요.', en:"Quit this workout? Today's progress won't be saved.", zh:'确定要结束这次训练吗？当前进度不会保存。'});
  if(confirm(msg)){
  isPaused = false;
  pauseOverlay.classList.remove('on');
@@ -756,7 +766,7 @@ function applySetupPrefs(prefs){
 }
 const PROFILE_KEY = 'wodrush_profile_v1';
 let myNickname = '';
-let myProfile = { totalCompletions:0, currentStreak:0, bestStreakEver:0, lastPlayDate:null, monthlyCounts:{}, history:[], totalWorkoutSeconds:0, xp:0, totalCalories:0, achievements:[], comebackCount:0, dailyChallengesCompleted:0, dailyChallengeDate:null, challengesAccepted:0 };
+let myProfile = { totalCompletions:0, currentStreak:0, bestStreakEver:0, lastPlayDate:null, monthlyCounts:{}, history:[], totalWorkoutSeconds:0, xp:0, totalCalories:0, achievements:[], comebackCount:0 };
 
 function levelFor(total){
  if(total >= 100) return { label:'Gold', icon:'', next:null };
@@ -801,38 +811,14 @@ function checkComeback(){
  const banner = document.getElementById('comeback-banner');
  if(banner){
  banner.style.display = 'block';
- banner.innerHTML = LANG==='ko'
- ? ('' + gapDays + '일 만에 복귀! <b>+15 XP</b> 보너스 지급. 오늘은 가볍게 몸부터 풀어봅니다.')
- : ('Welcome back after ' + gapDays + ' days! <b>+15 XP</b> bonus added. Ease back in today.');
+ banner.innerHTML = t({
+ ko:gapDays + '일 만에 복귀! <b>+15 XP</b> 보너스 지급. 오늘은 가볍게 몸부터 풀어봅니다.',
+ en:'Welcome back after ' + gapDays + ' days! <b>+15 XP</b> bonus added. Ease back in today.',
+ zh:'时隔' + gapDays + '天回来了！赠送 <b>+15 XP</b>。今天先轻松热身吧。'});
  }
  }catch(e){ console.error('checkComeback failed:', e); }
 }
 
-// ---------- DAILY CHALLENGE (매일 바뀌는 챌린지 · 재접속/성취감) ----------
-function dailyChallengeExercise(){
- const start = new Date(new Date().getFullYear(), 0, 0);
- const dayOfYear = Math.floor((new Date() - start) / 86400000);
- return EXERCISES[dayOfYear % EXERCISES.length];
-}
-function isDailyChallengeDoneToday(){
- return myProfile.dailyChallengeDate === todayStr();
-}
-function renderDailyChallengeCard(){
- try{
- const ex = dailyChallengeExercise();
- const card = document.getElementById('daily-challenge-card');
- const iconEl = document.getElementById('dc-icon');
- const titleEl = document.getElementById('dc-title');
- const subEl = document.getElementById('dc-sub');
- if(!card || !titleEl || !subEl) return;
- const done = isDailyChallengeDoneToday();
- card.classList.toggle('done', done);
- titleEl.textContent = LANG==='ko' ? '오늘의 챌린지' : "Today's Challenge";
- subEl.textContent = done
- ? (LANG==='ko' ? '완료! 내일 또 도전해봅니다' : 'Done! Come back tomorrow')
- : (LANG==='ko' ? (t(ex.label) + ' 포함해서 완주하면 +30 XP') : ('Include ' + t(ex.label) + ' for +30 XP'));
- }catch(e){ console.error('renderDailyChallengeCard failed:', e); }
-}
 
 function loadNickname(){
  try{
@@ -848,7 +834,7 @@ function loadProfile(){
  const val = localStorage.getItem(PROFILE_KEY);
  if(val){
  const p = JSON.parse(val);
- myProfile = Object.assign({ totalCompletions:0, currentStreak:0, bestStreakEver:0, lastPlayDate:null, monthlyCounts:{}, history:[], totalWorkoutSeconds:0, xp:0, totalCalories:0, achievements:[], comebackCount:0, dailyChallengesCompleted:0, dailyChallengeDate:null, challengesAccepted:0 }, p);
+ myProfile = Object.assign({ totalCompletions:0, currentStreak:0, bestStreakEver:0, lastPlayDate:null, monthlyCounts:{}, history:[], totalWorkoutSeconds:0, xp:0, totalCalories:0, achievements:[], comebackCount:0 }, p);
  }
  }catch(e){}
  updateBestBox();
@@ -963,14 +949,14 @@ async function checkSupabaseSession(){
 
 function updateBestBox(){
  const labelEl = document.getElementById('best-score-label');
- if(labelEl) labelEl.textContent = LANG==='ko' ? '내 기록' : 'My Stats';
+ if(labelEl) labelEl.textContent = t({ko:'내 기록', en:'My Stats', zh:'我的记录'});
  if(myProfile.totalCompletions > 0){
  bestScoreBox.style.display = 'block';
  const lvl = levelFor(myProfile.totalCompletions);
  bestScoreVal.textContent = (lvl.icon ? lvl.icon + ' ' : '') +
- (LANG==='ko'
- ? (myProfile.currentStreak + '일 연속 · 총 ' + myProfile.totalCompletions + '회')
- : (myProfile.currentStreak + '-day streak · ' + myProfile.totalCompletions + ' total'));
+ t({ko:myProfile.currentStreak + '일 연속 · 총 ' + myProfile.totalCompletions + '회',
+ en:myProfile.currentStreak + '-day streak · ' + myProfile.totalCompletions + ' total',
+ zh:'连续' + myProfile.currentStreak + '天 · 累计' + myProfile.totalCompletions + '次'});
  }
 }
 
@@ -994,12 +980,12 @@ function escapeHtml(str){
 function renderHistoryList(){
  const hist = (myProfile.history || []);
  if(!hist.length){
- historyList.innerHTML = '<div class="lb-empty">' + (LANG==='ko' ? '아직 완주 기록이 없습니다.' : 'No sessions completed yet.') + '</div>';
+ historyList.innerHTML = '<div class="lb-empty">' + t({ko:'아직 완주 기록이 없습니다.', en:'No sessions completed yet.', zh:'还没有完成记录。'}) + '</div>';
  return;
  }
  historyList.innerHTML = hist.map(ts=>{
  const d = new Date(ts);
- const dateStr = LANG==='ko' ? ((d.getMonth()+1)+'월 '+d.getDate()+'일') : (d.toLocaleString('en-US',{month:'short'}) + ' ' + d.getDate());
+ const dateStr = t({ko:(d.getMonth()+1)+'월 '+d.getDate()+'일', en:d.toLocaleString('en-US',{month:'short'}) + ' ' + d.getDate(), zh:(d.getMonth()+1)+'月'+d.getDate()+'日'});
  const timeStr = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
  return '<div class="lb-row"><div class="lb-name">'+dateStr+'</div><div class="lb-stats">'+timeStr+'</div></div>';
  }).join('');
@@ -1026,7 +1012,7 @@ function renderWeekStrip(){
  });
  // 1회=빨강 2회=주황 3회=노랑 4회=초록 5회=파랑 6회=남색 7회=보라 8회+=무지개
  const RAINBOW = ['#ff3b3b','#ff8a00','#ffd60a','#3ec96a','#3ea0ff','#3a4bdb','#9a3fe0'];
- const dowLabels = LANG==='ko' ? ['일','월','화','수','목','금','토'] : ['S','M','T','W','T','F','S'];
+ const dowLabels = t({ko:['일','월','화','수','목','금','토'], en:['S','M','T','W','T','F','S'], zh:['日','一','二','三','四','五','六']});
  const today = new Date();
  for(let i=6; i>=0; i--){
  const d = new Date(today);
@@ -1068,7 +1054,7 @@ function renderCalendar(){
  const d = new Date(ts);
  if(d.getFullYear() === year && d.getMonth() === month) doneDays.add(d.getDate());
  });
- const dowLabels = LANG==='ko' ? ['일','월','화','수','목','금','토'] : ['S','M','T','W','T','F','S'];
+ const dowLabels = t({ko:['일','월','화','수','목','금','토'], en:['S','M','T','W','T','F','S'], zh:['日','一','二','三','四','五','六']});
  dowLabels.forEach(l=>{
  const el = document.createElement('div');
  el.className = 'cal-dow';
@@ -1090,27 +1076,27 @@ function renderCalendar(){
 
 function renderRecordsScreen(){
  renderCalendar();
- document.getElementById('rec-best-streak').textContent = (myProfile.bestStreakEver || 0) + (LANG==='ko'?'일':'d');
+ document.getElementById('rec-best-streak').textContent = (myProfile.bestStreakEver || 0) + t({ko:'일',en:'d',zh:'天'});
  // 큰 숫자 자리에 부연을 넣으면 44px 로 '0일(오늘 0회)' 가 되어 두 줄로 넘친다.
   // 숫자는 숫자대로 두고 부연만 작게 떼어 붙인다.
   document.getElementById('rec-current-streak').innerHTML =
-    (myProfile.currentStreak || 0) + (LANG==='ko' ? '일' : 'd') +
+    (myProfile.currentStreak || 0) + t({ko:'일', en:'d', zh:'天'}) +
     '<span class="val-sub">' +
-    (LANG==='ko' ? ('오늘 ' + todayCompletionCount() + '회') : (todayCompletionCount() + ' today')) +
+    t({ko:'오늘 ' + todayCompletionCount() + '회', en:todayCompletionCount() + ' today', zh:'今天' + todayCompletionCount() + '次'}) +
     '</span>';
- document.getElementById('rec-week').textContent = weeklyCompletionCount() + (LANG==='ko'?'회':'');
- document.getElementById('rec-month').textContent = (myProfile.monthlyCounts[monthKeyStr()] || 0) + (LANG==='ko'?'회':'');
- document.getElementById('rec-total').textContent = (myProfile.totalCompletions || 0) + (LANG==='ko'?'회':'');
+ document.getElementById('rec-week').textContent = weeklyCompletionCount() + t({ko:'회',en:'',zh:'次'});
+ document.getElementById('rec-month').textContent = (myProfile.monthlyCounts[monthKeyStr()] || 0) + t({ko:'회',en:'',zh:'次'});
+ document.getElementById('rec-total').textContent = (myProfile.totalCompletions || 0) + t({ko:'회',en:'',zh:'次'});
  const totalMin = Math.round((myProfile.totalWorkoutSeconds || 0) / 60);
  document.getElementById('rec-total-time').textContent = totalMin >= 60
- ? (Math.floor(totalMin/60) + (LANG==='ko'?'시간 ':'h ') + (totalMin%60) + (LANG==='ko'?'분':'m'))
- : (totalMin + (LANG==='ko'?'분':'m'));
+ ? (Math.floor(totalMin/60) + t({ko:'시간 ',en:'h ',zh:'小时'}) + (totalMin%60) + t({ko:'분',en:'m',zh:'分'}))
+ : (totalMin + t({ko:'분',en:'m',zh:'分'}));
 
  const total = myProfile.totalCompletions || 0;
  const lvl = levelFor(total);
  document.getElementById('badge-current').textContent = lvl.label ? (lvl.icon + ' ' + lvl.label) : t(STATIC_UI.recNoBadge);
  document.getElementById('badge-next').textContent = lvl.next
- ? (LANG==='ko' ? (lvl.next + '회까지 ' + (lvl.next - total) + '회 남음') : ((lvl.next - total) + ' more to reach ' + lvl.next))
+ ? t({ko:lvl.next + '회까지 ' + (lvl.next - total) + '회 남음', en:(lvl.next - total) + ' more to reach ' + lvl.next, zh:'距离' + lvl.next + '次还差' + (lvl.next - total) + '次'})
  : t(STATIC_UI.recMaxBadge);
  const prevThreshold = lvl.label === 'Gold' ? 100 : lvl.label === 'Silver' ? 50 : lvl.label === 'Bronze' ? 30 : 0;
  const nextThreshold = lvl.next || 100;
@@ -1370,7 +1356,7 @@ function renderExGrid(){
  if(term && filtered.length === 0){
  const empty = document.createElement('div');
  empty.className = 'search-empty';
- empty.textContent = LANG==='ko' ? '검색 결과가 없습니다' : 'No matching exercises';
+ empty.textContent = t({ko:'검색 결과가 없습니다', en:'No matching exercises', zh:'没有匹配的动作'});
  exGrid.appendChild(empty);
  }
  filtered.forEach(ex=>{
@@ -1576,13 +1562,13 @@ function renderRoutinesList(){
  const encoded = encodeRoutine({ name:r.name, keys:r.keys, duration:r.duration });
  if(!encoded) return;
  const url = location.href.split('#')[0].split('?')[0] + '?routine=' + encoded;
- const text = (LANG==='ko' ? '내가 만든 루틴 "' + r.name + '" 해볼래?\n' : 'Try my "' + r.name + '" routine?\n') + url;
+ const text = t({ko:'내가 만든 루틴 "' + r.name + '" 해볼래?\n', en:'Try my "' + r.name + '" routine?\n', zh:'来试试我做的方案“' + r.name + '”？\n'}) + url;
  try{
  if(navigator.share){ await navigator.share({ text, url }); return; }
  }catch(e){}
  try{
  await navigator.clipboard.writeText(text);
- alert(LANG==='ko' ? '링크를 복사했어요!' : 'Link copied!');
+ alert(t({ko:'링크를 복사했어요!', en:'Link copied!', zh:'链接已复制！'}));
  }catch(e){}
  });
  row.querySelector('.del-btn').addEventListener('click', ()=>{
@@ -1608,11 +1594,11 @@ try{
  const msgEl = document.getElementById('save-routine-msg');
  const nameInput = document.getElementById('routine-name-input');
  const name = nameInput.value.trim().slice(0,14);
- if(!name){ if(msgEl) msgEl.textContent = LANG==='ko' ? '루틴 이름을 입력해주십시오.' : 'Enter a routine name.'; return; }
+ if(!name){ if(msgEl) msgEl.textContent = t({ko:'루틴 이름을 입력해주십시오.', en:'Enter a routine name.', zh:'请输入方案名称。'}); return; }
  const list = loadRoutines();
  list.unshift({ name, keys: Array.from(selectedExKeys), duration: selectedDurationPreset });
  saveRoutinesList(list.slice(0, 20));
- if(msgEl) msgEl.textContent = LANG==='ko' ? '저장했어요!' : 'Saved!';
+ if(msgEl) msgEl.textContent = t({ko:'저장했어요!', en:'Saved!', zh:'已保存！'});
  nameInput.value = '';
  });
 }catch(e){ console.error('routines UI setup failed:', e); }
@@ -1633,47 +1619,11 @@ try{
  });
  showScreen(setupScreen);
  const name = decoded.name ? (' "' + decoded.name + '"') : '';
- alert(LANG==='ko' ? ('친구가 공유한 루틴' + name + '을 불러왔어요!') : ('Loaded a shared routine' + name + '!'));
+ alert(t({ko:'친구가 공유한 루틴' + name + '을 불러왔어요!', en:'Loaded a shared routine' + name + '!', zh:'已载入好友分享的方案' + name + '！'}));
  }
  }
 }catch(e){ console.error('shared routine load failed:', e); }
 
-// ---------- Load a friend's challenge via URL (?cn=nickname&cs=streak&ct=total) ----------
-try{
- const cparams = new URLSearchParams(location.search);
- const cn = cparams.get('cn');
- const cs = cparams.get('cs');
- const ct = cparams.get('ct');
- if(cn && cs){
- const banner = document.getElementById('challenge-invite');
- const titleEl = document.getElementById('challenge-invite-title');
- const subEl = document.getElementById('challenge-invite-sub');
- const acceptBtn = document.getElementById('challenge-accept-btn');
- if(banner && titleEl && subEl && acceptBtn){
- banner.style.display = 'block';
- titleEl.textContent = LANG==='ko' ? ('' + cn + '님의 도전장!') : ('Challenge from ' + cn + '!');
- subEl.textContent = LANG==='ko'
- ? ('연속 ' + cs + '일 · 총 ' + (ct || 0) + '회 — 이 기록을 이겨보자!')
- : (cs + '-day streak · ' + (ct || 0) + ' total — try to beat it!');
- const flagKey = 'wodrush_challenge_seen_' + encodeURIComponent(cn + '|' + cs + '|' + (ct||''));
- acceptBtn.addEventListener('click', ()=>{
- banner.style.display = 'none';
- if(!localStorage.getItem(flagKey)){
- localStorage.setItem(flagKey, '1');
- myProfile.xp = (myProfile.xp || 0) + 10;
- myProfile.challengesAccepted = (myProfile.challengesAccepted || 0) + 1;
- checkAchievements();
- saveProfile();
- }
- try{
- const cleanUrl = new URL(location.href);
- cleanUrl.searchParams.delete('cn'); cleanUrl.searchParams.delete('cs'); cleanUrl.searchParams.delete('ct');
- history.replaceState(null, '', cleanUrl.toString());
- }catch(e){}
- });
- }
- }
-}catch(e){ console.error('challenge invite load failed:', e); }
 
 try{
  const manualConfirmBtn = document.getElementById('manual-confirm-btn');
@@ -1787,7 +1737,7 @@ function showWodPreview(nextFn){
  item.innerHTML =
  '<span class="wpi-num">' + (i+1) + '</span>' +
  '<span class="wpi-icon">' + m.ex.icon + '</span>' +
- '<span>' + t(m.ex.label) + (m.isBoss ? (LANG==='ko' ? ' (보스)' : ' (BOSS)') : '') + '</span>';
+ '<span>' + t(m.ex.label) + (m.isBoss ? t({ko:' (보스)', en:' (BOSS)', zh:'（BOSS）'}) : '') + '</span>';
  list.appendChild(item);
  });
  }
@@ -1983,22 +1933,22 @@ function runMission(){
  figureWrap.className = 'figure-wrap anim-' + m.ex.key.toLowerCase();
  if(m.ex.key === 'LEGRAISE'){ startLegSync(1600); } else { stopLegSync(); }
  startPhotoDemo(m.ex.key);
- exName.textContent = t(m.ex.label) + (m.isBoss ? (LANG==='ko' ? ' (보스)' : ' (BOSS)') : '');
+ exName.textContent = t(m.ex.label) + (m.isBoss ? t({ko:' (보스)', en:' (BOSS)', zh:'（BOSS）'}) : '');
  // 버티는 동작(플랭크)은 링, 나머지는 큰 숫자. 둘 다 남은 초를 말한다 —
  // 링을 쓰는 이유는 '유지한다'가 모양으로 읽히기 때문이다.
  const isHold = m.ex.type === 'hold';
  if(exTarget) exTarget.style.display = isHold ? 'none' : '';
  if(holdRing) holdRing.style.display = isHold ? '' : 'none';
  exCue.textContent = t(m.ex.cue);
- if(exWarn) exWarn.textContent = m.ex.tip ? ((LANG==='ko' ? '주의 · ' : 'Careful · ') + t(m.ex.tip)) : '';
+ if(exWarn) exWarn.textContent = m.ex.tip ? (t({ko:'주의 · ', en:'Careful · ', zh:'注意 · '}) + t(m.ex.tip)) : '';
  clearBanner.style.opacity = '0';
  // show what's coming up next continuously through the whole set,
  // instead of only flashing on for the last 3 seconds
  const upcomingNext = missions[missionIndex + 1];
  if(upcomingNext){
- nextPreview.textContent = (LANG==='ko' ? '다음 · ' : 'Next · ') + t(upcomingNext.ex.label);
+ nextPreview.textContent = t({ko:'다음 · ', en:'Next · ', zh:'下一个 · '}) + t(upcomingNext.ex.label);
  } else {
- nextPreview.textContent = LANG==='ko' ? '마지막 세트!' : 'Final set!';
+ nextPreview.textContent = t({ko:'마지막 세트!', en:'Final set!', zh:'最后一组！'});
  }
  nextPreview.classList.add('on');
  speakExercise(t(m.ex.label), t(m.ex.cue));
@@ -2128,10 +2078,10 @@ function completeMission(m){
  const upcomingIsRest = (missionIndex + 1) === midRestIndex && !midRestGiven;
  if(!upcomingIsRest){
  if(upcoming){
- exName.textContent = (LANG==='ko' ? '다음: ' : 'Next: ') + upcoming.ex.icon + ' ' + t(upcoming.ex.label);
+ exName.textContent = t({ko:'다음: ', en:'Next: ', zh:'下一个：'}) + t(upcoming.ex.label);
  exCue.textContent = t(upcoming.ex.cue);
  } else {
- exName.textContent = LANG==='ko' ? '마무리!' : 'Almost done!';
+ exName.textContent = t({ko:'마무리!', en:'Almost done!', zh:'收尾！'});
  exCue.textContent = '';
  }
  }
@@ -2154,11 +2104,11 @@ function runRest(){
  gameScreen.classList.remove('boss');
  figureWrap.className = 'figure-wrap';
  stopPhotoDemo();
- exName.textContent = LANG==='ko' ? '휴식' : 'Rest';
+ exName.textContent = t({ko:'휴식', en:'Rest', zh:'休息'});
  exTarget.style.display = '';
- exTarget.textContent = LANG==='ko' ? '숨 고르기' : 'Catch your breath';
+ exTarget.textContent = t({ko:'숨 고르기', en:'Catch your breath', zh:'调整呼吸'});
  exCue.textContent = '';
- setCoachLine(LANG==='ko' ? '잠깐 숨 고르고 가자' : "Take a quick breather");
+ setCoachLine(t({ko:'잠깐 숨 고르고 가자', en:'Take a quick breather', zh:'先喘口气'}));
 
  const r = 65, circumference = 2*Math.PI*r;
  holdRingProg.style.strokeDasharray = circumference;
@@ -2212,7 +2162,7 @@ function finishGame(){
  stopPhotoDemo();
  Sound.fanfare();
 
- finalSub.textContent = (LANG==='ko' ? (missions.length + '개 미션 완주') : (missions.length + ' missions completed')) + ' · +20 XP';
+ finalSub.textContent = t({ko:missions.length + '개 미션 완주', en:missions.length + ' missions completed', zh:'完成' + missions.length + '个动作'}) + ' · +20 XP';
  if(resultCoachEmoji) resultCoachEmoji.textContent = selectedCoach.emoji;
  if(resultCoachLine) resultCoachLine.textContent = t(selectedCoach.finish);
 
@@ -2259,10 +2209,10 @@ function finishGame(){
  const calVal = document.getElementById('result-cal-val');
  const timeLabel = document.getElementById('result-time-label');
  const calLabel = document.getElementById('result-cal-label');
- if(timeVal) timeVal.textContent = LANG==='ko' ? (totalMinutes + '분') : (totalMinutes + ' min');
+ if(timeVal) timeVal.textContent = t({ko:totalMinutes + '분', en:totalMinutes + ' min', zh:totalMinutes + '分钟'});
  if(calVal) calVal.textContent = calories + 'kcal';
- if(timeLabel) timeLabel.textContent = LANG==='ko' ? '운동시간' : 'Time';
- if(calLabel) calLabel.textContent = LANG==='ko' ? '칼로리 (추정)' : 'Calories (est.)';
+ if(timeLabel) timeLabel.textContent = t({ko:'운동시간', en:'Time', zh:'训练时长'});
+ if(calLabel) calLabel.textContent = t({ko:'칼로리 (추정)', en:'Calories (est.)', zh:'消耗（估算）'});
 
  showScreen(resultScreen);
  fireConfetti();
@@ -2276,23 +2226,13 @@ function finishGame(){
  myProfile.xp = (myProfile.xp || 0) + baseXp + weekendBonusXp;
  if(bonusXpEarned > 0){ myProfile.xp += bonusXpEarned; }
 
- let dailyChallengeMsg = weekendBonusXp > 0
- ? (LANG==='ko' ? ' · 주말 2배 XP!' : ' · Weekend 2x XP!')
+ let bonusMsg = weekendBonusXp > 0
+ ? t({ko:' · 주말 2배 XP!', en:' · Weekend 2x XP!', zh:' · 周末双倍XP！'})
  : '';
  if(bonusXpEarned > 0){
- dailyChallengeMsg += LANG==='ko' ? (' · 보너스 라운드 +' + bonusXpEarned + ' XP!') : (' · Bonus round +' + bonusXpEarned + ' XP!');
+ bonusMsg += t({ko:' · 보너스 라운드 +' + bonusXpEarned + ' XP!', en:' · Bonus round +' + bonusXpEarned + ' XP!', zh:' · 奖励回合 +' + bonusXpEarned + ' XP！'});
  }
- try{
- const challengeEx = dailyChallengeExercise();
- const included = missions.some(m => m.ex.key === challengeEx.key);
- if(included && myProfile.dailyChallengeDate !== todayStr()){
- myProfile.dailyChallengeDate = todayStr();
- myProfile.dailyChallengesCompleted = (myProfile.dailyChallengesCompleted || 0) + 1;
- myProfile.xp = (myProfile.xp || 0) + 30;
- dailyChallengeMsg += LANG==='ko' ? ' · 오늘의 챌린지 +30 XP!' : ' · Daily Challenge +30 XP!';
- }
- }catch(e){ console.error('daily challenge check failed:', e); }
- if(dailyChallengeMsg) finalSub.textContent = finalSub.textContent + dailyChallengeMsg;
+ if(bonusMsg) finalSub.textContent = finalSub.textContent + bonusMsg;
 
  // ---------- XP gauge fill-up (도파민 피드백 연출) ----------
  try{
@@ -2311,7 +2251,6 @@ function finishGame(){
 
  checkAchievements();
  recordCompletion();
- try{ renderDailyChallengeCard(); }catch(e){}
 
  // ---------- personalized recovery tip (workout → recovery synergy) ----------
  // Look at which exercises were actually in today's WOD and surface the
@@ -2401,27 +2340,28 @@ function finishGame(){
  const diff = calories - lastSessionCalories;
  vsLastEl.style.display = 'block';
  if(diff > 0){
- vsLastEl.innerHTML = LANG==='ko' ? ('지난번보다 <b>+' + diff + 'kcal</b> 더 태웠어요') : ('<b>+' + diff + 'kcal</b> more than last time');
+ vsLastEl.innerHTML = t({ko:'지난번보다 <b>+' + diff + 'kcal</b> 더 태웠어요', en:'<b>+' + diff + 'kcal</b> more than last time', zh:'比上次多消耗 <b>+' + diff + 'kcal</b>'});
  } else if(diff < 0){
- vsLastEl.innerHTML = LANG==='ko' ? ('지난번보다 ' + Math.abs(diff) + 'kcal 적어요') : (Math.abs(diff) + 'kcal less than last time');
+ vsLastEl.innerHTML = t({ko:'지난번보다 ' + Math.abs(diff) + 'kcal 적어요', en:Math.abs(diff) + 'kcal less than last time', zh:'比上次少' + Math.abs(diff) + 'kcal'});
  } else {
- vsLastEl.textContent = LANG==='ko' ? '지난번과 동일해요' : 'Same as last time';
+ vsLastEl.textContent = t({ko:'지난번과 동일해요', en:'Same as last time', zh:'与上次相同'});
  }
  } else {
  vsLastEl.style.display = 'none';
  }
  }
  const brokenRecords = [];
- if(myProfile.bestStreakEver > prevBest) brokenRecords.push(LANG==='ko' ? '연속 기록' : 'streak');
- if(myProfile.bestCaloriesEver > prevBestCalories && prevBestCalories > 0) brokenRecords.push(LANG==='ko' ? '칼로리' : 'calories');
- if(myProfile.bestScoreEver > prevBestScore && prevBestScore > 0) brokenRecords.push(LANG==='ko' ? '점수' : 'score');
+ if(myProfile.bestStreakEver > prevBest) brokenRecords.push(t({ko:'연속 기록', en:'streak', zh:'连续记录'}));
+ if(myProfile.bestCaloriesEver > prevBestCalories && prevBestCalories > 0) brokenRecords.push(t({ko:'칼로리', en:'calories', zh:'消耗'}));
+ if(myProfile.bestScoreEver > prevBestScore && prevBestScore > 0) brokenRecords.push(t({ko:'점수', en:'score', zh:'得分'}));
  const prBadgeEl = document.getElementById('pr-badge');
  if(prBadgeEl){
  if(brokenRecords.length){
  prBadgeEl.style.display = 'inline-flex';
- prBadgeEl.textContent = '' + (LANG==='ko'
- ? ('자기 최고 기록 경신! (' + brokenRecords.join(', ') + ')')
- : ('New personal best! (' + brokenRecords.join(', ') + ')'));
+ prBadgeEl.textContent = t({
+ ko:'자기 최고 기록 경신! (' + brokenRecords.join(', ') + ')',
+ en:'New personal best! (' + brokenRecords.join(', ') + ')',
+ zh:'刷新个人最好成绩！（' + brokenRecords.join('、') + '）'});
  } else {
  prBadgeEl.style.display = 'none';
  }
@@ -2523,15 +2463,15 @@ function generateShareCard(){
 
  ctx.fillStyle = '#ffd60a';
  ctx.font = '900 76px sans-serif';
- ctx.fillText((myProfile.currentStreak || 1) + (LANG==='ko' ? '일 연속' : '-day streak'), 300, 210);
+ ctx.fillText((myProfile.currentStreak || 1) + t({ko:'일 연속', en:'-day streak', zh:'天连续'}), 300, 210);
 
  ctx.fillStyle = '#f5f0e8';
  ctx.font = '700 30px sans-serif';
- ctx.fillText(LANG==='ko' ? ('총 ' + (myProfile.totalCompletions || 1) + '회 완주') : ((myProfile.totalCompletions || 1) + ' sessions total'), 300, 260);
+ ctx.fillText(t({ko:'총 ' + (myProfile.totalCompletions || 1) + '회 완주', en:(myProfile.totalCompletions || 1) + ' sessions total', zh:'累计完成' + (myProfile.totalCompletions || 1) + '次'}), 300, 260);
 
  ctx.fillStyle = '#8a7f74';
  ctx.font = '400 20px sans-serif';
- ctx.fillText(LANG==='ko' ? ((missions.length || 0) + '개 미션 완료 · ' + t(selectedCoach.name)) : ((missions.length || 0) + ' missions done · ' + t(selectedCoach.name)), 300, 300);
+ ctx.fillText(t({ko:(missions.length || 0) + '개 미션 완료 · ' + t(selectedCoach.name), en:(missions.length || 0) + ' missions done · ' + t(selectedCoach.name), zh:'完成' + (missions.length || 0) + '个动作 · ' + t(selectedCoach.name)}), 300, 300);
 
  ctx.strokeStyle = '#2c2420';
  ctx.lineWidth = 1;
@@ -2546,11 +2486,11 @@ function generateShareCard(){
 
  ctx.fillStyle = '#ff5a1f';
  ctx.font = '800 26px sans-serif';
- ctx.fillText(LANG==='ko' ? '이 기록, 깰 수 있어?' : 'Think you can beat this?', 300, 600);
+ ctx.fillText(t({ko:'이 기록, 깰 수 있어?', en:'Think you can beat this?', zh:'这个成绩，你能破吗？'}), 300, 600);
 
  ctx.fillStyle = '#5a5049';
  ctx.font = '400 15px sans-serif';
- ctx.fillText(LANG==='ko' ? '#Qfit #홈트 #오늘도완주' : '#Qfit #HomeWorkout #DailyGrind', 300, 760);
+ ctx.fillText(t({ko:'#Qfit #홈트 #오늘도완주', en:'#Qfit #HomeWorkout #DailyGrind', zh:'#Qfit #居家健身 #今天也完成了'}), 300, 760);
 
  // bake the site link into the image itself — captions/text often get
  // stripped when sharing to platforms like Instagram Stories, but this
@@ -2576,9 +2516,11 @@ async function shareResult(){
  const siteUrl = location.href.split('#')[0].split('?')[0];
  const personaEl = document.getElementById('persona-badge');
  const personaText = (personaEl && personaEl.style.display !== 'none') ? personaEl.textContent : '';
- const shareText = LANG==='ko'
- ? ((personaText ? (personaText + '\n') : '') + (myProfile.currentStreak||1) + '일 연속, 총 ' + (myProfile.totalCompletions||1) + '회 완주 — 이거 깰 수 있어? Q-fit으로 붙어보자\n' + siteUrl)
- : ((personaText ? (personaText + '\n') : '') + (myProfile.currentStreak||1) + '-day streak, ' + (myProfile.totalCompletions||1) + ' sessions total — think you can beat this? Try Q-fit\n' + siteUrl);
+ const head = personaText ? (personaText + '\n') : '';
+ const shareText = t({
+ ko:head + (myProfile.currentStreak||1) + '일 연속, 총 ' + (myProfile.totalCompletions||1) + '회 완주 — 이거 깰 수 있어? Q-fit으로 붙어보자\n' + siteUrl,
+ en:head + (myProfile.currentStreak||1) + '-day streak, ' + (myProfile.totalCompletions||1) + ' sessions total — think you can beat this? Try Q-fit\n' + siteUrl,
+ zh:head + '连续' + (myProfile.currentStreak||1) + '天，累计完成' + (myProfile.totalCompletions||1) + '次 — 你能破吗？来试试 Q-fit\n' + siteUrl});
 
  try{
  const file = new File([blob], 'sports-game-result.png', { type:'image/png' });
@@ -2598,26 +2540,6 @@ async function shareResult(){
 }
 
 shareBtn.addEventListener('click', shareResult);
-
-if(resultChallengeBtn) resultChallengeBtn.addEventListener('click', async ()=>{
- const nick = (myNickname || (LANG==='ko' ? '친구' : 'A friend')).slice(0,10);
- const streakVal = myProfile.currentStreak || 1;
- const totalVal = myProfile.totalCompletions || 1;
- const siteUrl = location.href.split('#')[0].split('?')[0];
- const url = siteUrl + '?cn=' + encodeURIComponent(nick) + '&cs=' + streakVal + '&ct=' + totalVal;
- const text = LANG==='ko'
- ? (nick + '님의 도전장! 연속 ' + streakVal + '일 · 총 ' + totalVal + '회 — 이걸 이겨볼래?')
- : (nick + "'s challenge! " + streakVal + '-day streak · ' + totalVal + ' total — think you can beat it?');
- try{
- if(navigator.share){ await navigator.share({ text, url }); return; }
- }catch(e){ /* cancelled — fall through */ }
- try{
- await navigator.clipboard.writeText(text + '\n' + url);
- alert(LANG==='ko' ? '도전장 링크를 복사했어요! 친구에게 붙여넣기 해보십시오.' : 'Challenge link copied! Paste it to a friend.');
- }catch(e){
- prompt(LANG==='ko' ? '아래 링크를 복사해서 보내십시오:' : 'Copy this link to share:', url);
- }
-});
 
 // iOS/mobile often suspends the AudioContext when the tab loses focus
 // (screen lock, app switch, etc.) and never auto-resumes it — re-arm on return.
@@ -2749,13 +2671,12 @@ try{
  }
 }catch(e){ console.error('install banner setup failed:', e); }
 try{ loadProfile(); }catch(e){ console.error('loadProfile failed:', e); }
-try{ renderDailyChallengeCard(); }catch(e){ console.error('renderDailyChallengeCard boot failed:', e); }
 try{ checkComeback(); }catch(e){ console.error('checkComeback boot failed:', e); }
 try{
  langBtn.addEventListener('click', ()=>{
- try{ setLang(LANG === 'ko' ? 'en' : 'ko'); }catch(e){ console.error('setLang failed:', e); }
+ try{ setLang(nextLang()); }catch(e){ console.error('setLang failed:', e); }
  });
- langBtn.textContent = LANG === 'ko' ? 'EN' : '한글';
+ langBtn.textContent = LANG_LABEL[nextLang()];
 }catch(e){ console.error('lang button setup failed:', e); }
 try{ applyStaticTranslations(); }catch(e){ console.error('applyStaticTranslations failed:', e); }
 

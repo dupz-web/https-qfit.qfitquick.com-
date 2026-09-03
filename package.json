@@ -18,7 +18,8 @@
     "shot": "node scripts/shot.mjs",
     "nav": "node scripts/nav.mjs",
     "sheet": "node scripts/sheet.mjs",
-    "weight": "node scripts/weight.mjs"
+    "weight": "node scripts/weight.mjs",
+    "i18n": "node scripts/i18n.mjs"
   },
   "devDependencies": {
     "eruda": "^3.4.3",

@@ -13,7 +13,9 @@ const TABS = [
   ['홈', 'start-screen', () => document.querySelectorAll('.week-strip .week-day').length === 7],
   ['기록', 'records-screen', () => document.getElementById('rec-total')?.textContent.trim().length > 0],
   ['회복', 'recovery-screen', () => document.querySelectorAll('#recovery-screen .recovery-card').length > 0],
-  ['더보기', 'more-screen', () => document.getElementById('dc-title')?.textContent.trim().length > 0],
+  // 챌린지 카드로 판정하던 것을 바꿨다 — 그 기능을 지웠기 때문이다(FR-05).
+  // 더보기는 메뉴가 채워지는 화면이라 그걸 본다.
+  ['더보기', 'more-screen', () => document.querySelectorAll('#more-screen .menu-btn').length >= 2],
 ];
 
 const browser = await launch();
