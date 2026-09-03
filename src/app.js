@@ -1115,9 +1115,9 @@ function renderRecordsScreen(){
     '<span class="val-sub">' +
     t({ko:'오늘 ' + todayCompletionCount() + '회', en:todayCompletionCount() + ' today', zh:'今天' + todayCompletionCount() + '次'}) +
     '</span>';
- document.getElementById('rec-week').textContent = weeklyCompletionCount() + t({ko:'회',en:'',zh:'次'});
- document.getElementById('rec-month').textContent = (myProfile.monthlyCounts[monthKeyStr()] || 0) + t({ko:'회',en:'',zh:'次'});
- document.getElementById('rec-total').textContent = (myProfile.totalCompletions || 0) + t({ko:'회',en:'',zh:'次'});
+ document.getElementById('rec-week').textContent = (n => t({ko:n+'회', en:String(n), zh:n+'次'}))(weeklyCompletionCount());
+ document.getElementById('rec-month').textContent = (n => t({ko:n+'회', en:String(n), zh:n+'次'}))(myProfile.monthlyCounts[monthKeyStr()] || 0);
+ document.getElementById('rec-total').textContent = (n => t({ko:n+'회', en:String(n), zh:n+'次'}))(myProfile.totalCompletions || 0);
  const totalMin = Math.round((myProfile.totalWorkoutSeconds || 0) / 60);
  document.getElementById('rec-total-time').textContent = totalMin >= 60
  ? (Math.floor(totalMin/60) + t({ko:'시간 ',en:'h ',zh:'小时'}) + (totalMin%60) + t({ko:'분',en:'m',zh:'分'}))
@@ -1157,7 +1157,7 @@ function renderRecordsScreen(){
  avatarEl.style.borderColor = auraColor;
  avatarEl.textContent = String(lvlNum);
  }
- if(avatarLabelEl) avatarLabelEl.textContent = 'Lv.' + lvlNum + ' 네온 캐릭터';
+ if(avatarLabelEl) avatarLabelEl.textContent = 'Lv.' + lvlNum + ' ' + t({ko:'캐릭터', en:'character', zh:'角色'});
  }
 
  const achvContainer = document.getElementById('achievements-grid');

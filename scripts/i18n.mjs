@@ -27,7 +27,13 @@ for (const rel of files) {
   for (const m of src.matchAll(/\{\s*ko\s*:\s*(?:'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")[\s\S]*?\}/g)) {
     total++;
     const chunk = m[0];
-    const lack = LANGS.filter((l) => !new RegExp(`\\b${l}\\s*:`).test(chunk));
+    // 빈 값(en:'')을 '있음'으로 세면 안 된다 — 자리만 만들어 두고 안 채운 것이
+    // 통과해 버리고, 화면에서는 한국어로 되돌아가 있어서 눈치채기 어렵다.
+    const lack = LANGS.filter((l) => {
+      const has = new RegExp(`\\b${l}\\s*:\\s*(['"])((?:[^'"\\\\]|\\\\.)*)\\1`).exec(chunk);
+      if (!has) return !new RegExp(`\\b${l}\\s*:`).test(chunk); // 배열 값 등은 존재만 본다
+      return has[2].trim() === '';
+    });
     if (lack.length) {
       const line = src.slice(0, m.index).split('\n').length;
       const ko = (chunk.match(/ko\s*:\s*['"]([^'"]{0,28})/) || [])[1] ?? '?';
@@ -57,9 +63,19 @@ console.log(`app.js 안의 2갈래 분기(LANG==='ko' ? …) ${inline}곳 — �
 // 이런 자리는 언어를 바꿔도 한국어로 남는데, 오류가 안 나서 안 보인다.
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf-8');
 const bare = [];
+// JS 가 부팅 때 값을 넣는 자리. 여기에 data-i18n 을 붙이면 사전 값이
+// 실제 값을 덮어써서, 기록이 잠깐 보였다가 '0일' 로 되돌아간다.
+const FILLED_BY_JS = new Set([
+  'rec-best-streak', 'rec-current-streak', 'rec-week', 'rec-month',
+  'rec-total', 'rec-total-time', 'neon-avatar-label', 'warmup-video-error',
+  'ex-name', 'ex-cue', 'result-time-val', 'final-sub', 'final-rank',
+]);
+
 for (const m of html.matchAll(/<([a-z][\w-]*)([^>]*)>([^<>{}]*[가-힣][^<>]*)</g)) {
   const [, tag, attrs, text] = m;
   if (attrs.includes('data-i18n')) continue;
+  const id = (attrs.match(/id="([\w-]+)"/) || [])[1];
+  if (id && FILLED_BY_JS.has(id)) continue;
   const line = html.slice(0, m.index).split('\n').length;
   bare.push({ line, tag, text: text.trim().slice(0, 34) });
 }
