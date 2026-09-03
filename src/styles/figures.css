@@ -1,15 +1,7 @@
 /* ---------- STICK FIGURE DEMO ---------- */
 .figure-wrap{ width:104px; height:126px; margin-bottom:0px; }
-.photo-demo-wrap{
-  position:relative; width:min(90vw, 340px); aspect-ratio:9/16; max-height:46vh;
-  margin-bottom:4px;
-}
-.photo-demo-layer{
-  position:absolute; inset:0; width:100%; height:100%;
-  object-fit:contain; border-radius:16px; opacity:0;
-  transition:opacity 0.5s ease;
-}
-.photo-demo-layer.active{ opacity:1; }
+/* 사진 데모(.photo-demo-*)는 game.css 로 옮겼다 — 막대인간이 아니라
+   운동 화면의 일부다. 두 파일에 같은 선택자를 두면 나중에 실린 쪽이 조용히 이긴다. */
 .figure-wrap svg{ width:100%; height:100%; overflow:visible; }
 .figure-wrap .fig-part{ stroke:var(--text); stroke-width:7; stroke-linecap:round; fill:none; }
 .figure-wrap .fig-head{ fill:var(--text); }

@@ -129,9 +129,11 @@
 .next-preview { font-size: var(--t-sm); color: var(--text-dim); }
 
 /* 남은 초를 원으로. 숫자와 링이 같은 것을 말하므로 둘 다 크게 두지 않는다. */
-.hold-ring { position: relative; width: 150px; height: 150px; }
+/* 원본과 같은 106px. 150px 로 키웠더니 그만큼이 사진 칸에서 빠졌다 —
+   이 화면에서 세로는 제로섬이다. 남는 자리는 자세 사진이 가져가는 게 맞다. */
+.hold-ring { position: relative; width: 106px; height: 106px; flex: none; }
 .hold-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.hold-ring circle { fill: none; stroke-width: 5; }
+.hold-ring circle { fill: none; stroke-width: 8; }
 .hold-ring .track { stroke: var(--surface-2); }
 .hold-ring .prog {
   stroke: var(--accent);
@@ -145,7 +147,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--t-2xl);
+  font-size: var(--t-xl);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--text);
@@ -154,19 +156,25 @@
 /* 사진 시연. 없으면 막대인간으로 내려간다. */
 .photo-demo-wrap {
   position: relative;
-  width: 100%;
-  max-width: 300px;
-  aspect-ratio: 4 / 3;
+  /* 사진이 9:16 세로다. 가로 칸(4:3)에 cover 로 채우면 몸통 가운데만 남고
+     머리와 발이 잘린다 — 운동 자세를 보여 주는 사진이라 그건 못 쓴다.
+     비율을 사진에 맞추고 contain 으로 넣어 아무것도 안 자른다. */
+  /* 비율을 고정하지 않는다. 사진은 9:16 세로인데 화면 높이는 기기마다 달라서,
+     aspect-ratio 를 걸면 max-height 에 잘려 비율이 깨진다(320×569 → 320×292).
+     대신 남는 공간을 차지하고 object-fit:contain 으로 넣으면
+     어떤 높이에서도 안 잘리고 안 눌린다. */
+  flex: 1 1 auto;
+  width: min(90vw, 320px);
+  min-height: 150px;
   border-radius: var(--r-lg);
   overflow: hidden;
-  background: var(--surface-2);
 }
 .photo-demo-layer {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   opacity: 0;
   transition: opacity 0.45s var(--ease-out);
 }

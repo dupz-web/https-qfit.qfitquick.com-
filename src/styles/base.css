@@ -136,3 +136,10 @@ button {
   .screen { transition: none; transform: none; }
   .clear-banner, .boss-banner, .bonus-banner, .pr-badge { animation: none; }
 }
+
+/* 탭바를 감춘 화면에서는 그 자리를 여백으로 잡지 않는다.
+   운동 화면은 세로가 이미 빠듯한데(사진·운동명·설명·타이머 링이 한 줄로 쌓인다)
+   보이지도 않는 탭바를 위해 54px 을 비워 두고 있었다. */
+body.immersive .screen {
+  padding-bottom: calc(var(--s-6) + env(safe-area-inset-bottom));
+}

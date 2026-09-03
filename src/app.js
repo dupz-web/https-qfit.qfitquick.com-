@@ -410,8 +410,10 @@ function updateMuteIcon(){
  const icon = Sound.isMuted() ? ICON.soundOff : ICON.soundOn;
  const a = document.getElementById('mute-btn-start');
  const b = document.getElementById('mute-btn-game');
+ // 둘 다 innerHTML 이어야 한다. 한쪽만 고쳤더니 운동 화면의 음소거 버튼이
+ // SVG 소스를 글자로 찍어서, 화면 왼쪽에 태그가 그대로 흘러나왔다.
  if(a) a.innerHTML = icon;
- if(b) b.textContent = icon;
+ if(b) b.innerHTML = icon;
 }
 try{
  const muteStartBtn = document.getElementById('mute-btn-start');
@@ -1801,15 +1803,26 @@ function startWarmup(){
  p.catch((err)=>{
  // 재생 정책 거부(NotAllowedError)와 파일을 못 받은 것은 다른 일이다.
  // 예전에는 둘 다 '영상을 불러오지 못했어요' 로 나와 원인을 감췄다.
+ // 재생 정책 거부(NotAllowedError)와 파일을 못 받은 것은 다른 일이다.
+ // 예전에는 둘 다 '영상을 불러오지 못했어요' 로 나와 원인을 감췄다.
  const blocked = err && err.name === 'NotAllowedError';
  console.error('warmup video play() rejected:', err);
  if(errEl){
  errEl.textContent = blocked
- ? '화면을 한 번 눌러 주시면 준비운동 영상이 재생됩니다.'
+ ? '화면을 한 번 눌러 주시면 준비운동이 시작됩니다.'
  : '준비운동 영상을 불러오지 못했습니다. 건너뛰고 시작해도 됩니다.';
  errEl.style.display = 'block';
  }
- if(!blocked && warmupVideo) warmupVideo.style.display = 'none';
+ if(blocked){
+ // 소리를 끄지 않는다 — 준비운동 안내가 소리로 나오기 때문이다.
+ // 대신 한 번 누르면 그 제스처로 재생한다.
+ const retry = ()=>{
+ warmupVideo.play().then(()=>{ if(errEl) errEl.style.display = 'none'; }).catch(()=>{});
+ };
+ warmupScreen.addEventListener('click', retry, { once: true });
+ } else if(warmupVideo){
+ warmupVideo.style.display = 'none';
+ }
  });
  }
  }

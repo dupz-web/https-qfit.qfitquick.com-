@@ -55,8 +55,8 @@
 
  <!-- START -->
  <div class="screen active" id="start-screen">
- <div class="mute-btn" id="mute-btn-start"></div>
- <div class="lang-btn" id="lang-btn">EN</div>
+ <button class="mute-btn" id="mute-btn-start" type="button" aria-label="소리 켜기/끄기"></button>
+ <button class="lang-btn" id="lang-btn" type="button" aria-label="언어 바꾸기">EN</button>
 
  <h1 class="logo"><span class="logo-big">Q</span>-fit</h1>
  <p class="hero-line">1분이면 끝. 귀찮지 않은 운동.</p>
@@ -797,7 +797,7 @@
  <!-- WARM-UP VIDEO -->
  <div class="screen" id="warmup-screen">
  <div class="eyebrow" id="warmup-title">준비운동</div>
- <video id="warmup-video" class="warmup-video" src="media/clips/warmup.mp4" playsinline webkit-playsinline muted preload="none"></video>
+ <video id="warmup-video" class="warmup-video" src="media/clips/warmup.mp4" playsinline webkit-playsinline preload="none"></video>
  <p class="warmup-video-error" id="warmup-video-error" style="display:none;">영상을 불러오지 못했어요. 파일 위치를 확인해주십시오 (warmup.mp4).</p>
  <button class="btn-restart" id="warmup-skip-btn">건너뛰기</button>
  </div>
@@ -831,7 +831,7 @@
  <!-- GAME -->
  <div class="screen" id="game-screen">
  <div class="game-top-row">
- <div class="mute-btn" id="mute-btn-game" style="position:static; width:42px; height:42px; font-size:18px;"></div>
+ <button class="mute-btn" id="mute-btn-game" type="button" aria-label="소리 켜기/끄기"></button>
  <button class="pause-btn" id="pause-btn" data-icon="pause" aria-label="일시정지"></button>
  </div>
  <div class="hud">

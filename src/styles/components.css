@@ -639,3 +639,14 @@ body.immersive .tabbar {
 
 /* 시트가 열려 있으면 뒤 화면은 안 움직인다 */
 body.sheet-open .screen { overflow: hidden; }
+
+/* 운동 화면 상단 줄 안에 있는 것은 flex 가 자리를 잡는다.
+   기본 규칙은 화면 모서리 고정(absolute)인데, 줄 안에 들어간 것까지 그러면
+   좌표계가 둘이 되어 나란히 놓아도 높이가 안 맞는다. */
+.game-top-row .mute-btn,
+.game-top-row .pause-btn {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+}

@@ -7,8 +7,8 @@ export const PHOTO_SEQUENCES = {
   PLANK: ['plank-1.webp'],
   CRUNCH: ['crunch-1.webp', 'crunch-2.webp'],
   LEGRAISE: ['legraise-1.webp', 'legraise-2.webp'],
-  PUSHUP: ['pushup-1.jpg', 'pushup-2.jpg'],
-  PIKEPUSHUP: ['pikepushup-1.jpg', 'pikepushup-2.jpg'],
-  RUNINPLACE: ['runinplace-1.jpg', 'runinplace-2.jpg'],
-  ARMYCRAWL: ['armycrawl-1.jpg', 'armycrawl-2.jpg', 'armycrawl-3.jpg', 'armycrawl-4.jpg'],
+  PUSHUP: ['pushup-1.webp', 'pushup-2.webp'],
+  PIKEPUSHUP: ['pikepushup-1.webp', 'pikepushup-2.webp'],
+  RUNINPLACE: ['runinplace-1.webp', 'runinplace-2.webp'],
+  ARMYCRAWL: ['armycrawl-1.webp', 'armycrawl-2.webp', 'armycrawl-3.webp', 'armycrawl-4.webp'],
 };

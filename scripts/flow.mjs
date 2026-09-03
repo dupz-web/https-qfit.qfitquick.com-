@@ -22,6 +22,9 @@ page.on('console', (m) => {
 const active = () => page.evaluate(() => document.querySelector('.screen.active')?.id);
 const step = async (label, fn) => {
   await fn();
+  // 시트가 올라오고 내려가는 데 시간이 걸린다. 안 기다리면 다음 버튼을
+  // 움직이는 중에 누르고, 스크린샷도 어중간한 순간을 찍는다.
+  await page.waitForTimeout(450);
   const id = await active();
   console.log(`  ${label.padEnd(22)} → ${id}`);
   return id;
@@ -65,6 +68,12 @@ const game = await page.evaluate(() => {
     photoSrc: q('#photo-demo-a')?.getAttribute('src') ?? null,
     figureClass: q('.figure-wrap')?.className ?? null,
     photoVisible: vis('.photo-demo-wrap'),
+    photoBox: (() => {
+      const e = q('.photo-demo-wrap');
+      if (!e) return null;
+      const b = e.getBoundingClientRect();
+      return { w: Math.round(b.width), h: Math.round(b.height) };
+    })(),
     // 가로 넘침 — 폰에서 페이지가 밀리는지
     overflowPx: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
   };
@@ -90,8 +99,14 @@ if (game.overflowPx > 0) {
   console.log(`  ⚠ 가로 넘침 ${game.overflowPx}px — 판정은 'npm run phone' 이 한다`);
 }
 
+// 사진 칸이 눌리지 않았는지. 예전에 flex 가 세로로 눌러 340×102 가 된 적이
+// 있는데, 그때도 '사진 로드'는 통과했다 — 크기는 따로 재야 잡힌다.
+const photoOkShape = !!game.photoBox && game.photoBox.h >= 150 && game.photoBox.w >= 150;
+if (!photoOkShape) console.log(`  ⚠ 사진 칸이 눌렸다: ${JSON.stringify(game.photoBox)}`);
+
 const ok =
   finalScreen === 'game-screen' &&
+  photoOkShape &&
   !!game.exName &&
   photoOk &&
   errors.length === 0;
