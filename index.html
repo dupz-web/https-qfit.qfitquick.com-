@@ -36,8 +36,8 @@
 <!-- 설계가 정한 두 벌: 본문은 Noto Sans KR, 숫자·대문자 라벨은 Barlow Condensed.
      Barlow 는 한글 글리프가 없으므로 숫자와 라틴에만 쓴다 — 한글에 걸면 조용히 폴백된다. -->
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-J1FQnyb8.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DlZsU2fD.css">
+  <script type="module" crossorigin src="./assets/index-C1FHKzL3.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CKfy2iLY.css">
 <script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
 <body>
 <!-- 스플래시(FR-10).
@@ -73,39 +73,24 @@
 
  <!-- START -->
  <div class="screen active" id="start-screen">
- <button class="mute-btn" id="mute-btn-start" type="button" aria-label="소리 켜기/끄기"></button>
- <button class="lang-btn" id="lang-btn" type="button" aria-label="언어 바꾸기">EN</button>
 
- <h1 class="logo"><span class="logo-big">Q</span>-fit</h1>
- <p class="hero-line" data-i18n="heroLine">1분이면 끝. 귀찮지 않은 운동.</p>
-
- <div class="week-strip" id="week-strip"></div>
-
-
- <div class="comeback-banner" id="comeback-banner" style="display:none;"></div>
-
-
- <button class="primary" id="one-min-start-btn" data-i18n="startCta">1분 시작</button>
-
- <div class="one-min-panel" id="one-min-panel" style="display:none;">
- <div class="mode-card">
- <div class="mode-card-title" data-i18n="modeLabel">바로 고르기</div>
- <div class="mode-grid">
- <button class="mode-btn" id="mode-manual" data-i18n="modeManual">직접 선택</button>
- <button class="mode-btn" id="mode-random" data-i18n="modeRandom">랜덤 선택</button>
- </div>
- <button class="repeat-chip repeat-trigger-btn" id="repeat-trigger-start" style="display:none;" data-i18n="repeatLast">지난 루틴 다시 시작</button>
- <div class="mode-card-divider"></div>
- <button class="primary" id="mode-ai-btn" data-i18n="aiModeBtn">AI로 시작하기</button>
- </div>
+ <!-- 설계의 홈 머리: 왼쪽 아이콘 · 오른쪽 글자 버튼, 52px 한 줄.
+      설정을 목록 행이 아니라 톱니로 올린 건 홈에서 시작까지 가는 길에
+      아무것도 끼지 않게 하기 위해서다. 아이콘 버튼에는 data-i18n 을 달지 말 것 —
+      번역 훑기가 textContent 를 덮어써 아이콘이 지워진다(aria-label 로 대신한다). -->
+ <div class="home-top">
+ <button class="icb" id="open-settings-btn" type="button" aria-label="설정" data-icon="settings"></button>
+ <button class="icb mute-btn" id="mute-btn-start" type="button" aria-label="소리 켜기/끄기"></button>
+ <span class="home-top-gap"></span>
+ <button class="txtb lang-btn" id="lang-btn" type="button" aria-label="언어 바꾸기">EN</button>
+ <button class="txtb" id="open-account-btn" data-i18n="accountBtn">로그인</button>
  </div>
 
  <div class="install-banner" id="install-banner" style="display:none;">
  <div class="install-banner-main" id="install-banner-main">
- 
  <span class="install-banner-text" id="install-banner-text" data-i18n="installText">홈 화면에 추가하면 더 빠르게 써요</span>
  <button class="install-action-btn" id="install-action-btn" data-i18n="installBtn">설치</button>
- <button class="install-dismiss-btn" id="install-dismiss-btn" data-icon="close"></button>
+ <button class="install-dismiss-btn icb" id="install-dismiss-btn" data-icon="close" aria-label="닫기"></button>
  </div>
  <div class="install-banner-detail" id="install-banner-detail" style="display:none;" data-i18n="installDetail1">
  Safari 하단 공유 버튼()을 누르고 <b data-i18n="installDetail2">"홈 화면에 추가"</b>를 선택해보십시오.
@@ -113,11 +98,66 @@
  </div>
 
  <div class="weekend-banner" id="weekend-banner" style="display:none;" data-i18n="weekendBanner">주말 한정! 오늘 완주하면 XP 2배</div>
+ <div class="comeback-banner" id="comeback-banner" style="display:none;"></div>
 
- <div class="menu-box">
- <button class="menu-btn" id="open-account-btn" data-i18n="accountBtn">로그인</button>
- <button class="menu-btn" id="open-settings-btn" data-i18n="settingsBtn">설정</button>
+ <div class="hero">
+ <h1 class="logo">Q-fit<span class="logo-dot">.</span></h1>
+ <p class="hero-line" data-i18n="heroLine">1분이면 끝. 귀찮지 않은 운동.</p>
  </div>
+
+ <div class="card week-card">
+ <div class="week-head">
+ <span class="week-title" data-i18n="thisWeek">이번 주</span>
+ <span class="dim" id="streak-line"></span>
+ </div>
+ <div class="week-strip" id="week-strip"></div>
+ </div>
+
+ <!-- 회복·운동동작은 더보기에도 있다. 여기 버튼은 그 버튼을 눌러 준다 —
+      화면을 여는 논리가 거기 붙어 있어서, 두 벌로 만들면 한쪽만 고쳐진다.
+      그래서 id 도 다르게 둔다(같으면 querySelector 가 어느 쪽을 집을지 모른다). -->
+ <div class="home-grid">
+ <button class="card home-tile" id="home-recovery-btn" type="button">
+ <span class="home-tile-icon" data-icon="heart"></span>
+ <span class="home-tile-label" data-i18n="recoveryBtn">회복 · SOS</span>
+ </button>
+ <button class="card home-tile" id="home-moves-btn" type="button">
+ <span class="home-tile-icon" data-icon="moves"></span>
+ <span class="home-tile-label" data-i18n="movesBtn">운동동작 소개</span>
+ </button>
+ </div>
+
+ <div class="start-block">
+ <button class="primary" id="one-min-start-btn" data-i18n="startCta">1분 시작</button>
+ <p class="dim start-note" id="start-note"></p>
+ </div>
+
+ <!-- 시작 방식 시트(설계 02). 네 갈래를 같은 모양의 행 하나로 세운다 —
+      예전에는 2열 그리드 + 칩 + 구분선 + 주 버튼이 섞여 있어서 "무엇이 같은
+      층위인지"가 안 읽혔다. AI 행만 앰버로 칠해 유일한 강조로 둔다.
+      네 번째 행은 저장된 루틴이 있을 때만 나온다(조건부 요소는 짝으로 움직인다). -->
+ <div class="one-min-panel" id="one-min-panel" style="display:none;">
+ <p class="dim sheet-note" data-i18n="sheetBackNote">뒤로가기 한 번은 시트만 닫습니다.</p>
+ <div class="sheet-rows">
+ <button class="row44 card" id="mode-manual" type="button">
+ <span class="row-ic" data-icon="grid"></span>
+ <span class="row-main"><span class="row-t" data-i18n="modeManual">직접 선택</span><span class="row-d dim" data-i18n="modeManualSub">동작 12개에서 고르기</span></span>
+ </button>
+ <button class="row44 card" id="mode-random" type="button">
+ <span class="row-ic" data-icon="dice"></span>
+ <span class="row-main"><span class="row-t" data-i18n="modeRandom">랜덤 선택</span><span class="row-d dim" data-i18n="modeRandomSub">고민 없이 4개 뽑기</span></span>
+ </button>
+ <button class="row44 row-accent" id="mode-ai-btn" type="button">
+ <span class="row-ic" data-icon="spark"></span>
+ <span class="row-main"><span class="row-t" data-i18n="aiModeBtn">AI로 시작하기</span><span class="row-d" data-i18n="aiModeSub">질문 2개로 끝</span></span>
+ </button>
+ <button class="row44 card row-mint repeat-trigger-btn" id="repeat-trigger-start" type="button" style="display:none;">
+ <span class="row-ic" data-icon="repeat"></span>
+ <span class="row-main"><span class="row-t" data-i18n="repeatLast">지난 루틴 다시 시작</span><span class="row-d dim" id="repeat-trigger-sub"></span></span>
+ </button>
+ </div>
+ </div>
+
  <!-- 더보기 탭이 같은 일을 한다. 탭바가 이 버튼을 눌러 이동하므로 지우지 말고 숨긴다. -->
  <button class="link-btn" id="open-more-btn" hidden data-i18n="moreLink">내 기록 · 루틴 더보기</button>
  </div>
@@ -127,40 +167,98 @@
  <div class="eyebrow" data-i18n="moreEyebrow">더보기</div>
  <h2 class="lb-title" data-i18n="moreTitle">내 활동</h2>
 
+ <!-- 설계 16 에는 여기 '오늘의 챌린지' 배너가 있지만 넣지 않는다.
+      챌린지는 FR-05 로 걷어낸 기능이다(커밋 150da98) — 설계는 그 결정보다
+      앞선 그림이라, 여기서는 요구사항이 이긴다. -->
  <button class="repeat-chip repeat-trigger-btn" id="repeat-trigger-more" style="display:none;" data-i18n="repeatLast">지난 루틴 다시 시작</button>
 
- <div class="best-score" id="best-score-box" style="display:none;"><span id="best-score-label" data-i18n="recordsBtn">내 기록</span><b id="best-score-val">0</b></div>
 
-
- <div class="menu-box">
- <button class="menu-btn" id="open-records-btn" data-i18n="recordsBtn">내 기록</button>
- <button class="menu-btn" id="open-routines-btn" data-i18n="routinesBtn">내 루틴</button>
- <!-- 홈의 '가이드' 영역에 있던 것들. 홈은 시작 하나만 남기고 여기로 모았다(FR-11).
+ <!-- 줄마다 아래에 한 줄을 붙인다(설계 16). 이름만 늘어놓으면 다섯 줄이
+      다 같아 보여서 무엇을 누를지 매번 하나씩 눌러 확인하게 된다.
       id 를 그대로 두는 이유: 탭바가 #open-recovery-btn 을 눌러 이동하고,
       JS 는 클래스로 잡는다. 바꾸면 둘 다 끊긴다. -->
- <button class="menu-btn video-gallery-trigger-btn" id="open-video-gallery-btn" data-i18n="movesBtn">운동동작 소개</button>
- <button class="menu-btn recovery-trigger-btn" id="open-recovery-btn" data-i18n="recoveryBtn">회복 · SOS</button>
- <button class="menu-btn" id="open-settings-btn-more" data-i18n="settingsBtn">설정</button>
+ <div class="menu-box">
+ <button class="menu-btn" id="open-records-btn">
+ <span class="row-main"><span class="row-t" data-i18n="recordsBtn">내 기록</span><span class="row-d dim" data-i18n="recordsSub">연속 · 월간 · 업적</span></span>
+ </button>
+ <button class="menu-btn" id="open-routines-btn">
+ <span class="row-main"><span class="row-t" data-i18n="routinesBtn">내 루틴</span><span class="row-d dim" id="routines-count-sub"></span></span>
+ </button>
+ <button class="menu-btn video-gallery-trigger-btn" id="open-video-gallery-btn">
+ <span class="row-main"><span class="row-t" data-i18n="movesBtn">운동동작 소개</span><span class="row-d dim" data-i18n="movesSub">12개 · 영상</span></span>
+ </button>
+ <button class="menu-btn recovery-trigger-btn" id="open-recovery-btn">
+ <span class="row-main"><span class="row-t" data-i18n="recoveryBtn">회복 · SOS</span><span class="row-d dim" data-i18n="recoverySub">부위별 대처법 · 회복 습관</span></span>
+ </button>
+ <button class="menu-btn" id="open-settings-btn-more">
+ <span class="row-main"><span class="row-t" data-i18n="settingsBtn">설정</span><span class="row-d dim" data-i18n="settingsSub">소리 · 진동 · 알림 · 언어</span></span>
+ </button>
+ </div>
+
+ <!-- 최고 기록(설계 16). 목록 아래에 한 장. 숫자 하나와 그 날짜만 —
+      기록 화면 전체를 여기 요약하려 들면 그 화면이 있을 이유가 없어진다. -->
+ <div class="card best-score" id="best-score-box" hidden>
+ <div class="kick" data-i18n="bestRecord">최고 기록</div>
+ <div class="best-score-line">
+ <b id="best-score-val">0</b>
+ <span id="best-score-meta"></span>
+ </div>
  </div>
 
  <button class="btn-restart" id="more-back-btn" style="margin-top:16px;" data-i18n="lbBackBtn">닫기</button>
  </div>
 
- <!-- AI ROUTINE QUIZ -->
+ <!-- AI ROUTINE QUIZ (설계 04).
+      머리에는 제목 대신 진행 점 두 개와 '건너뛰기' 만 둔다 — 질문 자체가
+      본문의 큰 제목이라, 머리에도 같은 말을 쓰면 화면에 제목이 둘이 된다.
+      건너뛰기는 늘 열어 둔다. 두 문항짜리 퀴즈에서 나가는 길이 없으면
+      질문이 아니라 관문이 된다. -->
  <div class="screen" id="ai-quiz-screen">
- <div class="eyebrow" data-i18n="aiEyebrow">AI 루틴</div>
- <h2 class="quiz-title" id="quiz-title" data-i18n="aiQ1">오늘 목표가 무엇입니까?</h2>
- <div class="quiz-progress"><span class="dot active" data-step="0"></span><span class="dot" data-step="1"></span></div>
+ <span class="quiz-progress" id="quiz-progress" data-hd-aside>
+ <i class="dot active" data-step="0"></i><i class="dot" data-step="1"></i>
+ <button class="txtb" id="quiz-skip-btn" data-i18n="skipBtn">건너뛰기</button>
+ </span>
 
- <div class="quiz-step" id="quiz-step-0" data-step="0">
- <button class="quiz-btn" data-goal="full" data-i18n="goalStamina">체력</button>
- <button class="quiz-btn" data-goal="diet" data-i18n="goalDiet">다이어트</button>
- <button class="quiz-btn" data-goal="strength" data-i18n="goalStrength">근력</button>
- <button class="quiz-btn" data-goal="core" data-i18n="modeCore">코어</button>
+ <div class="quiz-body">
+ <div class="kick quiz-step-label" id="quiz-step-label"></div>
+ <!-- 제목은 showQuizStep 이 단계에 맞춰 채운다. data-i18n 을 달면 언어를
+      바꿀 때 사전 훑기가 2단계에서도 1단계 질문을 도로 찍는다. -->
+ <h2 class="big quiz-title" id="quiz-title"></h2>
+ <p class="quiz-sub" id="quiz-sub"></p>
+
+ <!-- 단계마다 세 갈래(설계 04). 넷을 넘기면 '고르는 일' 이 되어 두 문항으로
+      끝내겠다는 약속이 깨진다. 예전 4번째였던 '코어' 는 직접 선택 화면의
+      부위 칩으로 남아 있다. -->
+ <div class="quiz-step" id="quiz-step-0" data-step="0" role="radiogroup">
+ <button class="quiz-btn row44 card" data-goal="full" role="radio" aria-checked="false">
+ <span class="row-main"><span class="row-t quiz-opt-t" data-i18n="goalStamina">체력</span><span class="row-d dim" data-i18n="goalStaminaSub">숨이 덜 차게</span></span>
+ <span class="radio"></span>
+ </button>
+ <button class="quiz-btn row44 card" data-goal="diet" role="radio" aria-checked="false">
+ <span class="row-main"><span class="row-t quiz-opt-t" data-i18n="goalDiet">다이어트</span><span class="row-d dim" data-i18n="goalDietSub">칼로리 위주</span></span>
+ <span class="radio"></span>
+ </button>
+ <button class="quiz-btn row44 card" data-goal="strength" role="radio" aria-checked="false">
+ <span class="row-main"><span class="row-t quiz-opt-t" data-i18n="goalStrength">근력</span><span class="row-d dim" data-i18n="goalStrengthSub">버티는 힘</span></span>
+ <span class="radio"></span>
+ </button>
  </div>
- <div class="quiz-step" id="quiz-step-1" data-step="1" style="display:none;">
- <button class="quiz-btn" data-level="beginner" data-i18n="modeBeginner">초보자</button>
- <button class="quiz-btn" data-level="advanced" data-i18n="modeAdvanced">숙련자</button>
+ <!-- 2단계는 세기다. 고르면 세트 수와 동작 시간이 같이 정해진다 —
+      설명에 적힌 그 숫자가 바로 다음 화면의 요약 카드에 뜬다. -->
+ <div class="quiz-step" id="quiz-step-1" data-step="1" style="display:none;" role="radiogroup">
+ <button class="quiz-btn row44 card" data-level="light" role="radio" aria-checked="false">
+ <span class="row-main"><span class="row-t quiz-opt-t" data-i18n="levelLight">가볍게</span><span class="row-d dim" id="quiz-level-light"></span></span>
+ <span class="radio"></span>
+ </button>
+ <button class="quiz-btn row44 card" data-level="normal" role="radio" aria-checked="false">
+ <span class="row-main"><span class="row-t quiz-opt-t" data-i18n="levelNormal">보통</span><span class="row-d dim" id="quiz-level-normal"></span></span>
+ <span class="radio"></span>
+ </button>
+ <button class="quiz-btn row44 card" data-level="hard" role="radio" aria-checked="false">
+ <span class="row-main"><span class="row-t quiz-opt-t" data-i18n="levelHard">세게</span><span class="row-d dim" id="quiz-level-hard"></span></span>
+ <span class="radio"></span>
+ </button>
+ </div>
  </div>
 
  <button class="back-link-btn" id="ai-quiz-back-btn" data-i18n="backBtn">이전</button>
@@ -169,26 +267,98 @@
  <!-- MY ROUTINES -->
  <!-- SETTINGS -->
  <div class="screen" id="settings-screen">
+ <!-- SETTINGS (설계 17).
+      프로필 카드 한 장 + 세 묶음(운동 · 소리 · 계정). 줄마다 무엇이
+      달라지는지 한 줄을 붙인다. 켜짐은 브라우저 기본 체크박스가 아니라
+      .sw 토글로 보인다 — 기본 체크박스는 파랗고, 이 앱에는 없는 색이다. -->
  <div class="eyebrow" data-i18n="settingsBtn">설정</div>
+
+ <div class="card profile-card">
+ <span class="profile-avatar" id="profile-avatar">Q</span>
+ <span class="row-main">
+ <span class="profile-name" id="profile-name">Q-fitter</span>
+ <span class="row-d dim" id="profile-sub"></span>
+ </span>
+ </div>
+ <!-- 클라우드를 잠가 둔 동안에는 로그인 버튼도 같이 닫힌다(app.js).
+      눌러도 아무 일이 없는 버튼보다 없는 버튼이 낫다. -->
+ <button class="primary profile-login" id="settings-login-btn" data-i18n="loginOrSignup">로그인 / 가입</button>
+
+ <div class="settings-group">
+ <div class="kick" data-i18n="setGroupWorkout">운동</div>
+ <div class="settings-list">
+ <button class="settings-row settings-link" id="settings-default-sets" type="button">
+ <span class="row-main"><span class="row-t" data-i18n="setDefaultSets">기본 세트 수</span><span class="row-d dim" data-i18n="setDefaultSetsSub">시작할 때 미리 채워집니다</span></span>
+ <span class="settings-val" id="settings-sets-val"></span>
+ </button>
+ <label class="settings-row">
+ <span class="row-main"><span class="row-t" data-i18n="warmupToggle">준비운동 먼저 하기 (약 1분)</span><span class="row-d dim" data-i18n="warmupToggleSub">부상 위험을 절반으로</span></span>
+ <input type="checkbox" id="settings-warmup-toggle" class="sw-input">
+ <span class="sw" aria-hidden="true"><i></i></span>
+ </label>
+ </div>
+ </div>
+
+ <div class="settings-group">
+ <div class="kick" data-i18n="setGroupSound">소리 · 진동</div>
  <div class="settings-list">
  <label class="settings-row">
- <span data-i18n="setBgm">배경음악</span>
- <input type="checkbox" id="settings-bgm-toggle" checked>
+ <span class="row-main"><span class="row-t" data-i18n="setBgm">배경음악</span><span class="row-d dim" data-i18n="setBgmSub">운동 중 배경으로 깔립니다</span></span>
+ <input type="checkbox" id="settings-bgm-toggle" class="sw-input" checked>
+ <span class="sw" aria-hidden="true"><i></i></span>
  </label>
  <label class="settings-row">
- <span data-i18n="setSfx">효과음</span>
- <input type="checkbox" id="settings-sfx-toggle" checked>
+ <span class="row-main"><span class="row-t" data-i18n="setSfx">효과음</span><span class="row-d dim" data-i18n="setSfxSub">카운트다운 · 완료 소리</span></span>
+ <input type="checkbox" id="settings-sfx-toggle" class="sw-input" checked>
+ <span class="sw" aria-hidden="true"><i></i></span>
  </label>
  <label class="settings-row">
- <span data-i18n="setVibe">진동</span>
- <input type="checkbox" id="settings-vibration-toggle" checked>
+ <span class="row-main"><span class="row-t" data-i18n="setVibe">진동</span><span class="row-d dim" data-i18n="setVibeSub">소리를 끄고도 박자를 느낄 수 있게</span></span>
+ <input type="checkbox" id="settings-vibration-toggle" class="sw-input" checked>
+ <span class="sw" aria-hidden="true"><i></i></span>
  </label>
- <label class="settings-row">
- <span data-i18n="setReminder">운동 알림</span>
- <input type="checkbox" id="reminder-toggle">
- </label>
- <p class="dim-note" id="reminder-note" data-i18n="reminderNote">나흘 동안 운동을 안 하면 한 번 알려드립니다.</p>
  </div>
+ </div>
+
+ <div class="settings-group">
+ <div class="kick" data-i18n="setGroupNotify">알림</div>
+ <div class="settings-list">
+ <label class="settings-row">
+ <span class="row-main"><span class="row-t" data-i18n="setReminder">운동 알림</span><span class="row-d dim" data-i18n="reminderNote">나흘 동안 운동을 안 하면 한 번 알려드립니다.</span></span>
+ <input type="checkbox" id="reminder-toggle" class="sw-input">
+ <span class="sw" aria-hidden="true"><i></i></span>
+ </label>
+ </div>
+ <p class="dim-note" id="reminder-note"></p>
+ </div>
+
+ <div class="settings-group">
+ <div class="kick" data-i18n="setGroupDisplay">표시</div>
+ <div class="settings-list">
+ <button class="settings-row settings-link" id="settings-lang-btn" type="button">
+ <span class="row-main"><span class="row-t" data-i18n="setLanguage">언어</span><span class="row-d dim" data-i18n="langList">한국어 / English / 中文</span></span>
+ <span class="settings-val" id="settings-lang-val"></span>
+ </button>
+ <button class="settings-row settings-link" id="settings-theme-btn" type="button">
+ <span class="row-main"><span class="row-t" data-i18n="setTheme">테마</span><span class="row-d dim" data-i18n="setThemeSub">시스템 설정을 따릅니다</span></span>
+ <span class="settings-val" id="settings-theme-val"></span>
+ </button>
+ </div>
+ </div>
+
+ <div class="settings-group">
+ <div class="kick" data-i18n="setGroupAccount">계정</div>
+ <div class="settings-list">
+ <button class="settings-row settings-link" id="settings-export-btn" type="button">
+ <span class="row-main"><span class="row-t" data-i18n="setExport">기록 내보내기</span><span class="row-d dim">CSV</span></span>
+ </button>
+ <button class="settings-row settings-link settings-danger" id="settings-wipe-btn" type="button">
+ <span class="row-main"><span class="row-t" data-i18n="setWipe">데이터 삭제</span><span class="row-d dim" data-i18n="setWipeSub">되돌릴 수 없습니다</span></span>
+ </button>
+ </div>
+ </div>
+
+ <p class="dim settings-foot" id="settings-version"></p>
  <button class="btn-restart" id="settings-back-btn" data-i18n="lbBackBtn">닫기</button>
  </div>
 
@@ -201,22 +371,30 @@
  <button class="btn-restart" id="routines-back-btn" data-i18n="lbBackBtn">닫기</button>
  </div>
 
- <!-- MANUAL SELECT (only when "직접 선택" is chosen) -->
+ <!-- MANUAL SELECT (설계 03).
+      머리 오른쪽에 고른 개수, 그 아래 검색 + 필터 칩 한 줄, 본문은 2열 카드,
+      주 버튼은 화면 아래에 고정한다. 예전에는 '부위별 빠른 선택'·'난이도별
+      빠른 선택' 이 각각 제목을 달고 아래에 또 있어서 화면이 세 토막이었고,
+      셋 다 '고르는 것' 이라 무엇이 무엇을 하는지 눌러 봐야 알 수 있었다.
+      이제 칩은 전부 거르기 하나로만 쓴다 — 고르는 것은 카드뿐이다. -->
  <div class="screen" id="manual-select-screen">
- <input type="text" id="ex-search-input" class="ex-search-input" placeholder="운동 검색 (예: 스쿼트)">
- <div class="section-label" data-i18n="wodLabel">오늘의 WOD 구성 <span class="set-note" data-i18n="setNote">· 총 8세트 (4세트 후 휴식)</span></div>
- <div class="ex-grid" id="ex-grid"></div>
+ <span class="hd-aside" id="select-count" data-hd-aside></span>
 
- <div class="section-label" data-i18n="groupLabel">세트 운동 (부위별 빠른 선택)</div>
- <div class="group-row" id="group-row"></div>
-
- <div class="section-label" data-i18n="quickByLevel">난이도별 빠른 선택</div>
- <div class="mode-grid" id="difficulty-row">
- <button class="mode-btn" id="quick-beginner" data-i18n="modeBeginner">초보자</button>
- <button class="mode-btn" id="quick-advanced" data-i18n="modeAdvanced">숙련자</button>
+ <div class="select-tools">
+ <label class="inp-wrap">
+ <span class="inp-ic" data-icon="search"></span>
+ <input type="text" id="ex-search-input" class="inp ex-search-input" placeholder="동작 검색 (예: 스쿼트)" aria-label="동작 검색">
+ </label>
+ <div class="chip-row" id="group-row"></div>
  </div>
 
- <button class="primary" id="manual-confirm-btn" data-i18n="nextBtn">다음</button>
+ <div class="ex-grid" id="ex-grid"></div>
+
+ <div class="screen-foot">
+ <!-- 라벨은 syncSelectCta 가 채운다(고른 개수를 말해야 하므로). data-i18n 을
+      달면 번역 훑기가 그 개수를 덮어쓴다. -->
+ <button class="primary" id="manual-confirm-btn"></button>
+ </div>
  <button class="back-link-btn" id="manual-back-btn" data-i18n="backBtn">이전</button>
  </div>
 
@@ -248,68 +426,108 @@
  <button class="link-btn" id="account-back-btn" data-i18n="skipAccount">계정 없이 계속하기</button>
  </div>
 
+ <!-- SETUP (설계 05).
+      번호 붙인 세 단(세트 → 시간 → 내 정보) 위에 '지금 설정' 요약 카드를 얹는다.
+      스크롤을 내려도 지금 값이 무엇인지 잊지 않게 하는 게 이 카드의 일이다 —
+      예전에는 화면 끝까지 내려가 시작 버튼을 누르는 순간까지 몇 세트인지
+      다시 확인할 방법이 없었다. -->
  <div class="screen" id="setup-screen">
- <div class="setup-card">
- <div class="section-label" id="setcount-section-label" data-i18n="setCountLabel">세트 수</div>
- <div class="setcount-row" id="setcount-row">
- <button class="duration-btn" data-count="4" data-i18n="sets4">4세트</button>
- <button class="duration-btn" data-count="8" data-i18n="sets8">8세트</button>
- <button class="duration-btn" data-count="12" data-i18n="sets12">12세트</button>
+ <span class="hd-aside" data-hd-aside>2 / 3</span>
+
+ <div class="card setup-summary">
+ <div class="kick setup-summary-kick" data-i18n="nowSetting">지금 설정</div>
+ <div class="setup-summary-nums">
+ <b id="summary-sets">8</b><span data-i18n="setsUnit">세트</span>
+ <i class="setup-summary-dot">·</i>
+ <b id="summary-secs">10</b><span data-i18n="secUnit">초</span>
  </div>
- <label class="custom-toggle" id="custom-setcount-label">
- <input type="checkbox" id="custom-setcount-toggle">
- <span data-i18n="customSets">직접 입력 (세트)</span>
+ <p class="dim" id="setup-summary-note"></p>
+ </div>
+
+ <section class="setup-sec">
+ <h3 class="setup-sec-t"><i>1</i><span data-i18n="setCountLabel">세트 수</span></h3>
+ <div class="chip-row" id="setcount-row">
+ <button class="chip" data-count="4" data-i18n="sets4">4세트</button>
+ <button class="chip" data-count="8" data-i18n="sets8">8세트</button>
+ <button class="chip" data-count="12" data-i18n="sets12">12세트</button>
+ <button class="chip" id="custom-setcount-btn" type="button" data-i18n="customSetsShort">직접 입력</button>
+ </div>
  <span class="range-note" id="setcount-range-note"></span>
- <input type="number" id="custom-setcount-input" class="custom-duration-input" min="2" max="40" inputmode="numeric" value="8" style="display:none;">
- </label>
- </div>
+ <!-- 값을 쥐고 있는 두 요소는 그대로 두고 화면에서만 감춘다. 사람은 시트의
+      −/+ 로 만지고, 여기 붙어 있는 기존 검사·계산은 그대로 돈다. -->
+ <input type="checkbox" id="custom-setcount-toggle" hidden>
+ <input type="number" id="custom-setcount-input" min="2" max="40" inputmode="numeric" value="8" hidden aria-label="세트 수 직접 입력">
+ </section>
 
- <p class="duration-hint" id="duration-hint" data-i18n="durationHint">세트 수를 고르면 운동 시간을 정할 수 있어요</p>
- <div class="setup-card" id="duration-card" style="display:none;">
- <div class="section-label" id="duration-section-label" data-i18n="durationLabel">운동 시간 (세트당)</div>
- <div class="duration-row" id="duration-row">
- <button class="duration-btn" data-preset="short" data-i18n="durationShort">짧게<span class="sub" data-i18n="durationShortSub">6~9초</span></button>
- <button class="duration-btn active" data-preset="normal" data-i18n="durationNormal">보통<span class="sub" data-i18n="durationNormalSub">9~12초</span></button>
- <button class="duration-btn" data-preset="long" data-i18n="durationLong">길게<span class="sub" data-i18n="durationLongSub">13~17초</span></button>
+ <section class="setup-sec">
+ <h3 class="setup-sec-t"><i>2</i><span data-i18n="durationLabel">운동 시간 (세트당)</span></h3>
+ <p class="duration-hint dim" id="duration-hint" data-i18n="durationHint">세트 수를 고르면 운동 시간을 정할 수 있어요</p>
+ <div id="duration-card" style="display:none;">
+ <div class="chip-row" id="duration-row">
+ <button class="chip" data-preset="short" data-i18n="durationShortSub">6~9초</button>
+ <button class="chip" data-preset="normal" data-i18n="durationNormalSub">9~12초</button>
+ <button class="chip" data-preset="long" data-i18n="durationLongSub">13~17초</button>
+ <button class="chip" id="custom-duration-btn" type="button" data-i18n="customSecsShort">직접 입력</button>
  </div>
- <label class="custom-toggle" id="custom-duration-label">
- <input type="checkbox" id="custom-duration-toggle">
- <span data-i18n="customSecs">직접 입력 (초)</span>
  <span class="range-note" id="duration-range-note"></span>
- <input type="number" id="custom-duration-input" class="custom-duration-input" min="4" max="50" inputmode="numeric" value="10" style="display:none;">
+ <input type="checkbox" id="custom-duration-toggle" hidden>
+ <input type="number" id="custom-duration-input" min="4" max="50" inputmode="numeric" value="10" hidden aria-label="동작 시간 직접 입력">
+ </div>
+
+ <!-- 준비운동은 시간 단의 일부다 — '얼마나 오래 하나' 에 딸린 결정이라
+      따로 떠 있으면 어느 단에 속하는지 알 수 없다. -->
+ <label class="card row44 warmup-toggle" id="warmup-toggle-label">
+ <span class="row-main">
+ <span class="row-t" id="warmup-toggle-text" data-i18n="warmupToggle">준비운동 먼저 하기 (약 1분)</span>
+ <span class="row-d dim" data-i18n="warmupToggleSub">부상 위험을 절반으로</span>
+ </span>
+ <input type="checkbox" id="warmup-toggle" class="sw-input">
+ <span class="sw" aria-hidden="true"><i></i></span>
+ </label>
+ </section>
+
+ <!-- 닉네임과 체중은 한 줄에 나란히 둔다(설계 05). 둘 다 선택이고 짧아서,
+      세로로 쌓으면 '선택' 짜리가 화면의 3분의 1을 먹는다. -->
+ <section class="setup-sec">
+ <h3 class="setup-sec-t"><i>3</i><span data-i18n="myInfo">내 정보 (선택)</span></h3>
+ <div class="me-row">
+ <label class="me-field">
+ <span class="dim" data-i18n="nickLabel">닉네임</span>
+ <input type="text" id="nickname-input" class="inp" maxlength="20" placeholder="Q-fitter">
+ </label>
+ <label class="me-field me-field-weight">
+ <span class="dim" data-i18n="weightKg">체중 kg</span>
+ <input type="number" id="weight-input" class="inp" min="30" max="200" placeholder="65" inputmode="numeric">
  </label>
  </div>
+ <p class="dim" data-i18n="weightHint">칼로리 추정 정확도를 높이는 데 쓰여요 (미입력 시 65kg 기준)</p>
+ </section>
 
- <label class="warmup-toggle" id="warmup-toggle-label">
- <span id="warmup-toggle-text" data-i18n="warmupToggle">준비운동 먼저 하기 (약 1분)</span>
- <input type="checkbox" id="warmup-toggle">
+ <div class="screen-foot">
+ <!-- 루틴 저장은 하단 바에 체크로 붙인다(설계 05). 이름을 받는 칸과 저장
+      버튼이 따로 있던 자리인데, 이름 짓기는 '오늘 운동하기' 와 층위가
+      너무 달라서 화면 한가운데에 있으면 안 된다. 이름은 날짜로 자동으로 짓고,
+      바꾸고 싶으면 내 루틴 화면에서 고친다. -->
+ <label class="row44 save-check" id="save-routine-label">
+ <input type="checkbox" id="save-routine-toggle" class="chk-input">
+ <span class="chk" aria-hidden="true"></span>
+ <span class="save-check-t" data-i18n="saveThisRoutine">이 조합을 내 루틴으로 저장</span>
  </label>
-
- <div class="setup-card">
- <div class="section-label" data-i18n="myInfo">내 정보 (선택)</div>
- <input type="text" id="nickname-input" class="nickname-input" maxlength="20" placeholder="닉네임 (선택)">
- <div class="nickname-hint" data-i18n="nickHint">결과 공유할 때 이 이름으로 표시됩니다</div>
-
- <div class="weight-input-row">
- <span data-i18n="weightLabel">체중</span>
- <input type="number" id="weight-input" min="30" max="200" placeholder="65" inputmode="numeric">
- <span>kg</span>
+ <!-- 라벨은 syncPlayBtn 이 채운다(0개일 때는 무엇을 해야 하는지 말한다). -->
+ <button class="primary" id="play-btn"></button>
  </div>
- <div class="nickname-hint" data-i18n="weightHint">칼로리 추정 정확도를 높이는 데 쓰여요 (미입력 시 65kg 기준)</div>
- </div>
+ <button class="btn-home" id="setup-back-btn" data-i18n="backBtn" hidden>이전</button>
 
- <div class="setup-card">
- <div class="section-label" data-i18n="saveAsRoutine">루틴으로 저장</div>
- <div class="save-routine-row">
- <input type="text" id="routine-name-input" class="routine-name-input" maxlength="14" placeholder="루틴 이름 (예: 아침 전신)">
- <button class="save-routine-btn" id="save-routine-btn" data-i18n="saveRoutineBtn">저장</button>
+ <!-- 직접 입력 시트(설계 05). 세트 수와 동작 시간이 같은 판을 쓴다 —
+      두 벌로 만들면 한쪽만 고쳐진다. -->
+ <div class="stepper-panel" id="stepper-panel" style="display:none;">
+ <p class="dim" id="stepper-range"></p>
+ <div class="stepper">
+ <button class="icb stepper-btn" id="stepper-down" type="button" aria-label="줄이기" data-icon="minus"></button>
+ <div class="stepper-val" id="stepper-val">8</div>
+ <button class="icb stepper-btn" id="stepper-up" type="button" aria-label="늘리기" data-icon="plus"></button>
  </div>
- <div class="save-routine-msg" id="save-routine-msg"></div>
- </div>
-
- <div class="result-actions">
- <button class="btn-home" id="setup-back-btn" data-i18n="backBtn">이전</button>
- <button class="btn-restart" id="play-btn">START Q</button>
+ <button class="primary" id="stepper-apply" data-i18n="applyBtn">적용</button>
  </div>
 
  </div>
@@ -328,36 +546,50 @@
  </div>
 
  <div class="records-body" id="records-body">
+ <!-- 통계 여섯 칸은 3열 타일이다(설계 13). 2열이면 여섯 칸이 세 줄을
+      차지해서 달력이 화면 밖으로 밀려난다 — 달력이 이 화면의 주인공이다.
+      라벨을 위에, 숫자를 아래에 두는 것도 같은 이유다: 눈이 숫자 줄에서
+      가로로 흐르면 여섯 개가 한눈에 비교된다. -->
  <div class="records-grid">
- <div class="record-box">
- <div class="record-val" id="rec-best-streak">0일</div>
+ <div class="tile record-box">
  <div class="record-label" data-i18n="recBestStreak">역대 최고 연속</div>
+ <div class="record-val" id="rec-best-streak">0일</div>
  </div>
- <div class="record-box">
- <div class="record-val" id="rec-current-streak">0일</div>
+ <div class="tile record-box">
  <div class="record-label" data-i18n="recCurrentStreak">현재 연속</div>
+ <div class="record-val" id="rec-current-streak">0일</div>
  </div>
- <div class="record-box">
- <div class="record-val" id="rec-week">0회</div>
+ <div class="tile record-box">
  <div class="record-label" data-i18n="recWeek">이번 주 횟수</div>
+ <div class="record-val" id="rec-week">0회</div>
  </div>
- <div class="record-box">
- <div class="record-val" id="rec-month">0회</div>
+ <div class="tile record-box">
  <div class="record-label" data-i18n="recMonth">이번 달 완주</div>
+ <div class="record-val" id="rec-month">0회</div>
  </div>
- <div class="record-box">
- <div class="record-val" id="rec-total">0회</div>
+ <div class="tile record-box">
  <div class="record-label" data-i18n="recTotal">총 완주</div>
+ <div class="record-val" id="rec-total">0회</div>
  </div>
- <div class="record-box">
- <div class="record-val" id="rec-total-time">0분</div>
+ <div class="tile record-box">
  <div class="record-label" data-i18n="recTotalTime">총 운동 시간</div>
+ <div class="record-val" id="rec-total-time">0분</div>
  </div>
  </div>
 
- <div class="section-label" data-i18n="thisMonth">이번 달</div>
- <div class="calendar-card">
+ <div class="card calendar-card">
+ <div class="cal-head">
+ <span class="cal-month" id="cal-month"></span>
+ <span class="dim" id="cal-done"></span>
+ </div>
  <div class="calendar-grid" id="calendar-grid"></div>
+ <!-- 칸의 색이 무엇을 뜻하는지 적는다. 색만으로 구분하면 색을 구별하기
+      어려운 사람에게는 달력이 회색 격자 하나로 보인다. -->
+ <div class="cal-legend">
+ <span class="dim"><i class="lg lg-done"></i><span data-i18n="calDone">완주</span></span>
+ <span class="dim"><i class="lg lg-miss"></i><span data-i18n="calMiss">미완</span></span>
+ <span class="dim"><i class="lg lg-today"></i><span data-i18n="calToday">오늘</span></span>
+ </div>
  </div>
 
  <div class="badge-progress">
@@ -410,30 +642,47 @@
  <!-- RECOVERY GUIDE -->
  <div class="screen" id="recovery-screen">
    <div class="eyebrow">RECOVERY</div>
-   <h2 class="lb-title" data-i18n="recoveryTitle">운동 후 회복</h2>
-   <p class="recovery-intro" data-i18n="recoveryIntro">운동은 절반, 회복은 나머지 절반입니다. 아래 습관들로 다음 WOD를 더 가볍게 시작해봅니다.</p>
-   <button type="button" id="jump-to-injury-btn" class="jump-to-injury-btn" data-i18n="jumpToInjury">부위별 부상 대처법 바로가기 ↓</button>
+   <h2 class="lb-title" data-i18n="recoveryTitle">회복</h2>
+   <!-- 설계 14: 아픈 데를 먼저 찾게 한다. 예전에는 회복 습관 카드 네 장을
+        지나 화면 한참 아래에야 부위 검색이 있었고, 대신 '바로가기 ↓' 버튼이
+        그 자리를 알려 주고 있었다 — 링크로 가리켜야 하는 자리는 잘못된 자리다.
+        지금 아픈 사람이 여는 화면이므로 검색과 부위 칩이 맨 위에 온다. -->
+   <p class="recovery-lead" data-i18n="recoveryLead">아픈 데를 먼저 찾으세요.</p>
 
-   <!-- 아래 둘은 src/data/recovery.js 를 읽어 JS 가 그린다.
+   <label class="inp-wrap">
+   <span class="inp-ic" data-icon="search"></span>
+   <input type="text" id="injury-search-input" class="inp search-input" placeholder="부위 또는 증상 검색" aria-label="부위 검색">
+   </label>
+   <div class="chip-row" id="injury-chip-row"></div>
+   <div class="search-empty" id="injury-search-empty" style="display:none;" data-i18n="searchEmpty">검색 결과가 없습니다</div>
+   <div id="injury-list"></div>
+
+   <div class="card recovery-warn">
+   <div class="recovery-warn-t" data-i18n="recoveryWarnT">통증이 48시간 넘게 남으면</div>
+   <p class="dim" data-i18n="recoveryWarnD">앱의 스트레칭을 멈추고 전문가를 만나세요. 이 목록은 진단이 아닙니다.</p>
+   </div>
+
+   <div class="injury-section-title" id="injury-section-anchor" data-i18n="recoveryHabits">회복 습관</div>
+   <p class="injury-intro" data-i18n="recoveryIntro">운동은 절반, 회복은 나머지 절반입니다. 아래 습관들로 다음 WOD를 더 가볍게 시작해봅니다.</p>
+   <!-- 아래는 src/data/recovery.js 를 읽어 JS 가 그린다.
         예전에는 385줄이 여기 박혀 있어서 언어를 하나 더 붙일 수가 없었다. -->
    <div id="recovery-cards"></div>
 
    <p class="recovery-note" data-i18n="recoveryNote">※ 일반적인 운동 회복 상식을 정리한 내용이며, 통증이 며칠 이상 지속되거나 심하다면 전문가와 상담하는 걸 권장합니다.</p>
 
-   <div class="injury-section-title" id="injury-section-anchor" data-i18n="injuryTitle">부위별 부상 대처법</div>
-   <p class="injury-intro" data-i18n="injuryIntro">운동 중이나 후에 통증이 느껴지면 해당 부위를 눌러서 원인·대처법을 확인해보십시오.</p>
-   <input type="text" id="injury-search-input" class="search-input" placeholder="부위 검색 (예: 무릎)">
-   <div class="search-empty" id="injury-search-empty" style="display:none;" data-i18n="searchEmpty">검색 결과가 없습니다</div>
-   <div id="injury-list"></div>
-
    <button class="btn-restart" id="recovery-back-btn" data-i18n="closeBtn">닫기</button>
   </div>
 
   <div class="screen" id="video-gallery-screen">
+ <!-- 머리 오른쪽에 개수(설계 15). 긴 안내문은 뺐다 — 격자를 보면 무엇이
+      있는지 바로 알 수 있는 화면에서 그 문장은 자리만 차지한다. -->
+ <span class="hd-aside" id="moves-count" data-hd-aside></span>
  <div class="eyebrow">CLIPS</div>
  <h2 class="lb-title" data-i18n="movesBtn">운동동작 소개</h2>
- <p class="recovery-intro" data-i18n="movesBlurb">직접 찍은 동작 영상들입니다. 스크롤하면서 자세를 참고해보십시오.</p>
- <input type="text" id="video-search-input" class="search-input" placeholder="운동 검색 (예: 스쿼트)">
+ <label class="inp-wrap">
+ <span class="inp-ic" data-icon="search"></span>
+ <input type="text" id="video-search-input" class="inp search-input" placeholder="동작 검색 (예: 스쿼트)" aria-label="동작 검색">
+ </label>
  <div class="video-gallery-grid" id="video-gallery-grid"></div>
  <div class="search-empty" id="video-search-empty" style="display:none;" data-i18n="searchEmpty">검색 결과가 없습니다</div>
  <button class="btn-restart" id="video-gallery-back-btn" style="margin-top:16px;" data-i18n="lbBackBtn">닫기</button>
@@ -449,13 +698,32 @@
  <div class="video-lightbox-risk" id="video-lightbox-risk"></div>
  </div>
 
- <!-- WOD PREVIEW -->
+ <!-- WOD PREVIEW (설계 06).
+      순서·목표·큐를 한 줄씩. 사진은 52px 로 작게 둔다 — 크게 볼 자리는
+      바로 다음의 운동 화면이고, 여기서 필요한 건 '무엇을 몇 번째로 하는가' 다.
+      이 화면부터 탭바를 감춘다(nav.js 의 IMMERSIVE). -->
  <div class="screen" id="wod-preview-screen">
- <div class="eyebrow" data-i18n="todayWod">오늘의 WOD</div>
- <h2 class="lb-title" data-i18n="wodOrder">이 순서대로 진행해요</h2>
+ <span class="hd-aside" id="preview-total" data-hd-aside></span>
+
+ <div class="card row44 preview-warm" id="preview-warm" style="display:none;">
+ <span class="row-ic" data-icon="play"></span>
+ <span class="row-main">
+ <span class="row-t" data-i18n="warmupTitle">준비운동</span>
+ <span class="row-d dim" data-i18n="warmupFirst">먼저 재생됩니다</span>
+ </span>
+ </div>
+
  <div class="wod-preview-list" id="wod-preview-list"></div>
- <!-- 영상을 보느라 자동 진행이 멈췄을 때만 나온다. 평소에는 3.2초 뒤 알아서 넘어간다. -->
- <button class="primary" id="preview-start-btn" data-i18n="startNow" hidden>지금 시작</button>
+ <p class="dim preview-note" data-i18n="previewSkipNote">순서는 시작 후에도 건너뛸 수 있습니다.</p>
+ <!-- 시작 버튼은 늘 있다(설계 06). 예전에는 3.2초 뒤 알아서 넘어갔는데,
+      목록을 읽는 중에 운동이 시작되므로 '읽으라고 만든 화면' 이 읽을
+      시간을 안 주는 상태였다. 이제 시작하는 것은 사람이 정한다. -->
+ <div class="screen-foot" id="preview-foot">
+ <button class="primary" id="preview-start-btn" data-i18n="startNow">시작</button>
+ </div>
+ <!-- 머리의 뒤로 버튼이 이걸 눌러 준다(header.js). 자동 진행 타이머를
+      먼저 끄지 않으면 설정 화면으로 돌아간 뒤 운동이 혼자 시작된다. -->
+ <button id="preview-back-btn" data-i18n="backBtn" hidden>이전</button>
  </div>
 
  <!-- COUNTDOWN -->
@@ -467,30 +735,20 @@
  <button class="btn-restart" id="warmup-skip-btn" data-i18n="warmupSkip">건너뛰기</button>
  </div>
 
+ <!-- COUNTDOWN (설계 07).
+      숫자 하나만. 위에 다음 동작 이름을 작게 얹어 마음의 준비를 만들고,
+      아래에 취소를 둔다 — 잘못 눌러 들어왔을 때 나갈 길이 하나는 있어야 한다.
+      예전에는 여기 막대인간 그림이 있었는데, 어느 운동인지와 무관한 그림이라
+      숫자와 무게만 나눠 가졌다. -->
  <div class="screen" id="countdown-screen">
- <svg class="loading-figure" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
- <defs>
- <linearGradient id="figGrad" x1="0%" y1="0%" x2="100%" y2="100%">
- <stop offset="0%" stop-color="#ffd60a"/>
- <stop offset="100%" stop-color="#ff5a1f"/>
- </linearGradient>
- </defs>
- <g stroke="url(#figGrad)" stroke-width="11" stroke-linecap="round" fill="none">
- <line x1="100" y1="70" x2="62" y2="36"/>
- <line x1="100" y1="70" x2="138" y2="36"/>
- <line x1="100" y1="70" x2="100" y2="122"/>
- <line x1="100" y1="122" x2="64" y2="178"/>
- <line x1="100" y1="122" x2="136" y2="178"/>
- </g>
- <circle cx="100" cy="46" r="19" fill="url(#figGrad)"/>
- <g stroke="rgba(255,214,10,0.35)" stroke-width="4" stroke-linecap="round">
- <line x1="20" y1="60" x2="38" y2="66"/>
- <line x1="20" y1="90" x2="40" y2="90"/>
- <line x1="180" y1="60" x2="162" y2="66"/>
- <line x1="180" y1="90" x2="160" y2="90"/>
- </g>
- </svg>
- <div id="countdown-num">3</div>
+ <div class="cd-mid">
+ <div class="kick" id="countdown-next"></div>
+ <div id="countdown-num" aria-live="assertive">3</div>
+ <p class="cd-cue" data-i18n="countdownCue">자리를 잡으세요</p>
+ </div>
+ <div class="cd-foot">
+ <button class="sec2" id="countdown-cancel-btn" data-i18n="cancelBtn">취소</button>
+ </div>
  </div>
 
  <!-- GAME -->
@@ -506,8 +764,14 @@
     </div>
 
     <!-- 조건부 배너. 2단을 밀어내지 않고 자기 높이만 차지한다. -->
-    <div class="boss-banner" id="boss-banner">BOSS WOD</div>
-    <div class="bonus-banner" id="bonus-banner" data-i18n="bonusBanner">보너스 라운드 · 2배 XP</div>
+    <!-- 배수를 오른쪽에 크게 붙인다(설계 10) — 색만으로는 무엇이 두 배인지
+         알 수 없고, 색을 구별하기 어려운 사람에게는 그냥 띠 하나다. -->
+    <div class="boss-banner" id="boss-banner">
+      <span data-i18n="bossBanner">보스 라운드</span><b>×2</b>
+    </div>
+    <div class="bonus-banner" id="bonus-banner">
+      <span data-i18n="bonusBanner">보너스 라운드 · 2배 XP</span><b>×2</b>
+    </div>
 
     <!-- 2단 · 지금 할 일 하나. 이 화면에서 제일 큰 것은 여기 숫자다. -->
     <div class="mission-zone" id="mission-zone">
@@ -575,58 +839,72 @@
  </div>
  </div>
 
+ <!-- PAUSE (설계 11).
+      상자를 씌우지 않는다 — 뒤 화면을 흐리게 깔아 두면 '잠깐 멈춘 것' 으로
+      읽히고, 흰 상자를 얹으면 '다른 화면으로 넘어온 것' 처럼 읽힌다.
+      세 갈래만 둔다: 계속 / 건너뛰기 / 종료. 종료만 무게를 다르게(--danger). -->
  <div class="pause-overlay" id="pause-overlay">
- <div class="pause-box">
- <div class="pause-title" data-i18n="paused">일시정지</div>
- <button class="btn-restart" id="resume-btn" data-i18n="resume">계속하기</button>
+ <div class="kick" id="pause-step"></div>
+ <h2 class="big pause-title" data-i18n="pauseTitle">쉬는 중</h2>
+ <button class="primary" id="resume-btn" data-i18n="resume">계속하기</button>
  <!-- 운동 화면에서 바로 누르게 하지 않는 이유: 타이머가 도는 채로 화면이 가려져
       몇 세트가 지나가 버린다. 멈춘 상태에서만 볼 수 있게 한다(FR-09 안1). -->
- <button class="btn-home" id="pause-clip-btn" data-i18n="watchClip" hidden>동작 영상 보기</button>
- <button class="btn-home" id="skip-btn" data-i18n="skipThis">이번 운동 건너뛰기</button>
- <button class="btn-home" id="quit-btn" data-i18n="quitWorkout">운동 종료</button>
- </div>
+ <button class="sec2" id="pause-clip-btn" data-i18n="watchClip" hidden>동작 영상 보기</button>
+ <button class="sec2" id="skip-btn" data-i18n="skipThis">이번 운동 건너뛰기</button>
+ <button class="sec2 sec2-danger" id="quit-btn" data-i18n="quitWorkout">운동 종료</button>
  </div>
 
- <!-- RESULT -->
+ <!-- RESULT (설계 12).
+      축하 → 숫자 → 다음 행동. 큰 숫자는 두 개까지만 둔다 — 셋을 넘기면
+      어느 것도 기억에 안 남는다. 주 버튼 하나('한 번 더') + 글자 버튼
+      하나('처음으로') 로 다음 행동을 좁히고, 공유·SOS 는 그 위에 보조로 둔다. -->
  <div class="screen" id="result-screen">
- <div class="result-check"></div>
- <div class="result-title" id="result-title" data-i18n="resultTitle">오늘 완료!</div>
+ <!-- 큰 숫자는 점수다(설계 12). '오늘 완료!' 는 체크와 같은 말을 두 번 하는
+      것이라 큰 자리를 줄 이유가 없다 — 그 말은 바로 위 완료 줄이 이미 한다.
+      점수는 이 화면에만 나오는 값이고, 지난번과 비교되는 유일한 숫자다. -->
+ <div class="result-hero">
+ <span class="result-mark" data-icon="check" aria-hidden="true"></span>
+ <div class="kick result-check"></div>
+ <div class="result-score" id="result-score">0</div>
+ <p class="result-score-unit" data-i18n="pointUnit">점</p>
+ <p class="result-sub" id="final-sub">7개 미션 완료</p>
+ </div>
 
  <div class="result-stats-grid">
- <div class="result-stat-box">
- <div class="stat-val" id="result-time-val">0분</div>
+ <div class="tile result-stat-box">
  <div class="stat-label" id="result-time-label" data-i18n="timeLabel">운동시간</div>
+ <div class="stat-val" id="result-time-val">0분</div>
  </div>
- <div class="result-stat-box">
- <div class="stat-val" id="result-cal-val">0kcal</div>
+ <div class="tile result-stat-box">
  <div class="stat-label" id="result-cal-label" data-i18n="calLabel">칼로리</div>
+ <div class="stat-val" id="result-cal-val">0kcal</div>
  </div>
  </div>
 
  <div class="vs-last-line" id="vs-last-line" style="display:none;"></div>
- <div class="result-sub" id="final-sub">7개 미션 완료</div>
- <div class="pr-badge" id="pr-badge" style="display:none;"></div>
- <div class="persona-badge" id="persona-badge" style="display:none;"></div>
 
- <div class="result-xp-gauge">
+ <div class="card result-xp-gauge">
  <div class="result-xp-label"><span id="result-xp-level">Lv.1</span><span id="result-xp-gain"></span></div>
  <div class="result-xp-track"><div class="result-xp-fill" id="result-xp-fill"></div></div>
  </div>
 
+ <div class="pr-badge" id="pr-badge" style="display:none;"></div>
+ <div class="persona-badge" id="persona-badge" style="display:none;"></div>
  <div class="result-rank" id="final-rank">기록 저장 중...</div>
- <div class="result-actions">
- <button class="btn-home" id="home-btn" data-i18n="homeBtn">처음으로</button>
- <button class="btn-restart" id="retry-btn" data-i18n="retryBtn">한 번 더</button>
- </div>
- <button class="repeat-chip repeat-trigger-btn" data-i18n="repeatLast">지난 루틴 다시 시작</button>
  <div class="result-recovery-tip" id="result-recovery-tip" style="display:none;"></div>
 
- <div class="feature-box" id="feature-box-result">
- <button class="feature-btn recovery-trigger-btn">SOS</button>
- <button class="feature-btn video-gallery-trigger-btn" data-i18n="movesBtn">운동동작 소개</button>
+ <!-- 공유는 내 기록을 남에게 보이는 것, 도전장은 같은 루틴을 상대에게 던지는
+      것이다. 둘 다 보조라 주 버튼 위에 나란히 둔다. -->
+ <div class="result-side">
+ <button class="sec2" id="share-btn"><span data-icon="share"></span><span data-i18n="shareShort">공유</span></button>
+ <button class="sec2" id="challenge-btn"><span data-icon="send"></span><span data-i18n="challengeBtn">도전장</span></button>
  </div>
+ <button class="repeat-chip repeat-trigger-btn" data-i18n="repeatLast">지난 루틴 다시 시작</button>
 
- <button class="link-btn" id="share-btn" data-i18n="shareBtn">결과 공유하기</button>
+ <div class="result-actions">
+ <button class="primary" id="retry-btn" data-i18n="retryBtn">한 번 더</button>
+ <button class="txtb" id="home-btn" data-i18n="homeBtn">처음으로</button>
+ </div>
  </div>
 </div>
 
