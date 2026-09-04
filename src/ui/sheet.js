@@ -9,6 +9,8 @@
 // 예전 모드 패널은 화면 안에서 펼쳐지면서 시작 버튼을 숨겼는데,
 // **닫는 길이 아예 없어서** 한 번 열면 홈으로 되돌릴 수가 없었다.
 
+import { ICON } from './icons.js';
+
 let sheet = null;
 let backdrop = null;
 let body = null;
@@ -28,12 +30,22 @@ function build() {
   sheet.className = 'sheet';
   sheet.setAttribute('role', 'dialog');
   sheet.setAttribute('aria-modal', 'true');
+  // 닫는 길을 셋으로 둔다 — 우상단 44px 버튼 · Esc · 배경 탭 · 아래로 끌기.
+  // 손잡이만 두면 끌어내릴 수 있다는 걸 모르는 사람은 갇힌 것처럼 느낀다.
   sheet.innerHTML =
     '<div class="sheet-grab" aria-hidden="true"></div>' +
+    '<div class="sheet-head">' +
     '<h2 class="sheet-title"></h2>' +
+    '<button class="icb sheet-close" type="button" data-icon="close"></button>' +
+    '</div>' +
     '<div class="sheet-body"></div>';
   titleEl = sheet.querySelector('.sheet-title');
   body = sheet.querySelector('.sheet-body');
+
+  const closeBtn = sheet.querySelector('.sheet-close');
+  closeBtn.setAttribute('aria-label', document.documentElement.lang === 'en' ? 'Close' : '닫기');
+  closeBtn.addEventListener('click', () => closeSheet());
+  if (ICON.close) closeBtn.innerHTML = ICON.close;
 
   const app = document.getElementById('app');
   app.appendChild(backdrop);

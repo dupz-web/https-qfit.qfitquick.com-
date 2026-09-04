@@ -1,5 +1,6 @@
 import { ICON } from './ui/icons.js';
 import { openSheet, closeSheet } from './ui/sheet.js';
+import { toast } from './ui/toast.js';
 import { getSupabase, hasStoredSession, isSupabaseReady, isCloudEnabled } from './cloud/supabase.js';
 import * as reminder from './notify/reminder.js';
 import { RECOVERY_CARDS, INJURY_GUIDES } from './data/recovery.js';
@@ -41,6 +42,29 @@ function nextLang(){
  return LANGS[(LANGS.indexOf(LANG) + 1) % LANGS.length];
 }
 
+// 테마는 셋이다: 자동(시스템을 따름) · 라이트 · 다크.
+// tokens.css 가 :root[data-theme] 로 갈라 두었으므로 여기서는 그 값만 쓴다.
+const THEMES = ['auto', 'light', 'dark'];
+const THEME_LABEL = {
+ auto: {ko:'자동', en:'Auto', zh:'自动'},
+ light: {ko:'라이트', en:'Light', zh:'浅色'},
+ dark: {ko:'다크', en:'Dark', zh:'深色'},
+};
+function currentTheme(){
+ try{ return THEMES.includes(localStorage.getItem('wodrush_theme_v1')) ? localStorage.getItem('wodrush_theme_v1') : 'auto'; }
+ catch(e){ return 'auto'; }
+}
+function applyTheme(name){
+ // 'auto' 는 속성을 아예 지운다 — 두면 prefers-color-scheme 이 못 이긴다.
+ if(name === 'auto') document.documentElement.removeAttribute('data-theme');
+ else document.documentElement.setAttribute('data-theme', name);
+ try{ localStorage.setItem('wodrush_theme_v1', name); }catch(e){}
+}
+function cycleTheme(){
+ applyTheme(THEMES[(THEMES.indexOf(currentTheme()) + 1) % THEMES.length]);
+}
+applyTheme(currentTheme());
+
 function setLang(lang){
  LANG = LANGS.includes(lang) ? lang : 'ko';
  try{ localStorage.setItem('wodrush_lang_v1', LANG); }catch(e){}
@@ -58,13 +82,15 @@ function setLang(lang){
 function applyStaticTranslations(){
  const map = [
  ['.eyebrow', 'eyebrow'], ['.tagline', 'tagline'],
- ['#open-records-btn', 'recordsBtn'], ['#open-account-btn', 'accountBtn'],
- ['#open-routines-btn', 'routinesBtn'], ['#mode-ai-btn', 'aiModeBtn'],
+ // 더보기의 다섯 줄은 이제 제목+설명 두 줄이라 data-i18n 이 몬다.
+ // 여기서 textContent 로 채우면 그 두 줄이 통째로 지워진다.
+ ['#open-account-btn', 'accountBtn'],
  ['#save-routine-btn', 'saveRoutineBtn'],
- ['#manual-confirm-btn', 'nextBtn'], ['#manual-back-btn', 'backBtn'],
- ['#setup-back-btn', 'backBtn'], ['#play-btn', 'startWod'],
+ ['#manual-back-btn', 'backBtn'],
+ ['#setup-back-btn', 'backBtn'],
  ['#lb-back-btn', 'lbBackBtn'],
- ['#retry-btn', 'retryBtn'], ['#home-btn', 'homeBtn'], ['#share-btn', 'shareBtn'],
+ // 공유는 아이콘+글자 두 조각이라 textContent 로 채우면 아이콘이 지워진다.
+ ['#retry-btn', 'retryBtn'], ['#home-btn', 'homeBtn'],
  ['#records-back-btn', 'lbBackBtn'],
  ['#inapp-open-btn', 'inappOpenBtn'], ['#inapp-dismiss-btn', 'inappDismiss'],
  ['#warmup-toggle-text', 'warmupToggle'], ['#warmup-title', 'warmupTitle'],
@@ -77,47 +103,31 @@ function applyStaticTranslations(){
  });
 
  updateSetNote();
- const wodLabels = document.querySelectorAll('.section-label');
- // first section-label is WOD config, second is muscle group quick-select
- if(wodLabels[0] && wodLabels[0].childNodes[0]){ wodLabels[0].childNodes[0].textContent = t(STATIC_UI.wodLabel) + ' '; }
- if(wodLabels[1]){ wodLabels[1].textContent = t(STATIC_UI.groupLabel); }
+ // 개수를 말하는 라벨들은 사전 훑기가 못 만든다 — 값이 섞여 있어서
+ // 마크업에 적어 둘 수 없다. 언어가 바뀔 때 여기서 다시 그린다.
+ try{ updateStartNote(); }catch(e){}
+ try{ syncPlayBtn(); }catch(e){}
+ try{ syncSelectCount(); }catch(e){}
+ // .section-label 을 순서로 집어 채우던 두 줄을 지웠다. 그 두 자리(오늘의 WOD
+ // 구성 · 부위별 빠른 선택)는 설계 03 에서 없어졌고, 남은 라벨들은 전부
+ // data-i18n 을 달고 있어 사전이 통째로 몬다. 순서로 집으면 마크업에서 무언가
+ // 하나만 빠져도 엉뚱한 자리에 엉뚱한 말이 조용히 찍힌다.
  const durationLabelEl = document.getElementById('duration-section-label');
  if(durationLabelEl) durationLabelEl.textContent = t(STATIC_UI.durationLabel);
 
- const modeLabelEl = document.querySelector('.mode-card-title');
- if(modeLabelEl) modeLabelEl.textContent = t(STATIC_UI.modeLabel);
- const modeMap = [
- ['#mode-random','modeRandom'], ['#mode-manual','modeManual'],
- ['#quick-beginner','modeBeginner'], ['#quick-advanced','modeAdvanced'],
- ];
- modeMap.forEach(([sel,key])=>{
- const btn = document.querySelector(sel);
- if(!btn) return;
- const icon = btn.querySelector('.mode-icon');
- btn.textContent = '';
- if(icon) btn.appendChild(icon);
- btn.appendChild(document.createTextNode(t(STATIC_UI[key])));
- });
-
- const durBtns = document.querySelectorAll('#duration-row .duration-btn');
- const durKeys = [['durationShort','durationShortSub'],['durationNormal','durationNormalSub'],['durationLong','durationLongSub']];
- durBtns.forEach((btn,i)=>{
- if(!durKeys[i]) return;
- const sub = btn.querySelector('.sub');
- btn.textContent = t(STATIC_UI[durKeys[i][0]]);
- const subEl = document.createElement('span');
- subEl.className = 'sub';
- subEl.textContent = t(STATIC_UI[durKeys[i][1]]);
- btn.appendChild(subEl);
- });
+ // 시작 시트의 세 갈래(제목+설명 두 줄)와 시간 칩은 이제 마크업에 data-i18n 이
+ // 붙어 있어 사전이 통째로 몬다. 여기서 textContent 로 채우던 코드를 지웠다 —
+ // 그러면 두 줄과 아이콘이 지워지고, 시간 칩은 '짧게6~9초' 처럼 두 말이 붙었다.
+ // 칩에는 '짧게/보통/길게' 대신 실제 초를 적는다. 이름은 상대적이라
+ // 셋을 나란히 놓기 전에는 몇 초인지 알 수 없다.
 
  const disclaimer = document.querySelector('.disclaimer');
  if(disclaimer) disclaimer.innerHTML = t(STATIC_UI.disclaimer);
 
+ // 칸 위에 '닉네임' 이라는 라벨이 붙었으므로 placeholder 는 예시를 든다.
+ // 라벨과 placeholder 가 같은 말이면 둘 중 하나는 아무 일도 안 한다.
  const nickInput = document.getElementById('nickname-input');
- if(nickInput) nickInput.placeholder = t(STATIC_UI.nicknamePh);
- const routineNameInput = document.getElementById('routine-name-input');
- if(routineNameInput) routineNameInput.placeholder = t(STATIC_UI.routineNamePh);
+ if(nickInput) nickInput.placeholder = 'Q-fitter';
  const routinesTitleEl = document.querySelector('#routines-screen .lb-title');
  if(routinesTitleEl) routinesTitleEl.textContent = t(STATIC_UI.routinesTitle);
 
@@ -158,8 +168,9 @@ function applyStaticTranslations(){
  if(entry) el.textContent = t(entry);
  });
  try{ renderBodyparts(); }catch(e){ console.error('renderBodyparts failed:', e); }
- const histLabel = document.querySelectorAll('#records-screen .section-label')[0];
- if(histLabel) histLabel.textContent = t(STATIC_UI.recHistoryLabel);
+ // 기록 화면 '최근 출석' 라벨도 인덱스로 집고 있었다. [0] 은 '이번 달' 이라
+ // 이 줄이 바로 위 사전 훑기를 덮어써서 '이번 달' 자리에 '최근 출석' 이
+ // 찍히고 있었다 — 그 라벨은 이제 마크업에 data-i18n="recHistoryLabel" 로 있다.
 
  const inappTitle = document.querySelector('.inapp-title');
  if(inappTitle) inappTitle.textContent = t(STATIC_UI.inappTitle);
@@ -183,6 +194,73 @@ function updateSetNote(){
  ko:'· 총 ' + selectedTotalSets + '세트 (' + restAt + '세트 후 휴식)',
  en:'· ' + selectedTotalSets + ' sets total (rest after ' + restAt + ')',
  zh:'· 共' + selectedTotalSets + '组（第' + restAt + '组后休息）'});
+}
+
+// 시작 버튼 밑의 한 줄. 설계가 여기 둔 이유는 '누르면 무슨 일이 나는지' 를
+// 누르기 전에 알려 주기 위해서다 — 세트 수와 시간은 설정 화면에 들어가야만
+// 보이던 값이었다.
+function updateStartNote(){
+ const el = document.getElementById('start-note');
+ if(!el) return;
+ const secs = Math.round(getDurationPreset().base * selectedTotalSets);
+ el.textContent = t(STATIC_UI.startNote).replace('%s', selectedTotalSets).replace('%s', secs);
+ // 홈의 한 줄과 설정의 요약 카드는 같은 두 값(세트·초)을 말한다.
+ // 값이 바뀌는 자리가 여럿이라, 한쪽만 갱신되는 일이 없게 여기서 같이 부른다.
+ updateSetupSummary();
+}
+
+// 설정 화면 맨 위 '지금 설정' 카드. 세 단을 스크롤해 내려가도 지금 값이
+// 무엇인지 늘 위에 남아 있게 하는 게 이 카드가 하는 일 전부다.
+function updateSetupSummary(){
+ const setsEl = document.getElementById('summary-sets');
+ if(!setsEl) return;
+ const secs = getDurationPreset().base;
+ setsEl.textContent = selectedTotalSets;
+ const secsEl = document.getElementById('summary-secs');
+ if(secsEl){
+  secsEl.textContent = secs;
+  // 세 자리부터는 --t-stat 에서 --t-xl 로 낮춘다(설계의 경계값 규칙).
+  secsEl.classList.toggle('narrow', String(secs).length >= 3);
+ }
+ const noteEl = document.getElementById('setup-summary-note');
+ if(noteEl){
+  const warm = document.getElementById('warmup-toggle');
+  const mins = Math.max(1, Math.round((selectedTotalSets * secs) / 60));
+  noteEl.textContent = (warm && warm.checked ? t(STATIC_UI.warmIncluded) + ' · ' : '') +
+   t(STATIC_UI.estMinutes).replace('%s', mins);
+ }
+
+ // 칩의 켜짐도 여기서 맞춘다. 예전에는 저장된 설정을 불러올 때만 켜져서,
+ // 처음 들어온 사람에게는 기본값 8세트인데 4·8·12 중 아무것도 안 켜져 있었다 —
+ // 화면이 "아직 안 골랐다" 고 말하는데 요약 카드는 8이라고 말했다.
+ const customSets = document.getElementById('custom-setcount-toggle');
+ const setsCustom = !!(customSets && customSets.checked);
+ document.querySelectorAll('#setcount-row [data-count]').forEach(b=>{
+  b.classList.toggle('active', !setsCustom && parseInt(b.dataset.count, 10) === selectedTotalSets);
+ });
+ // '직접 입력' 칩도 켜짐을 보여야 한다 — 안 그러면 네 칩 중 아무것도
+ // 안 켜진 채로 요약 카드만 값을 말하는 상태가 된다.
+ document.getElementById('custom-setcount-btn')?.classList.toggle('active', setsCustom);
+
+ const customSecs = document.getElementById('custom-duration-toggle');
+ const secsCustom = !!(customSecs && customSecs.checked);
+ document.querySelectorAll('#duration-row [data-preset]').forEach(b=>{
+  b.classList.toggle('active', !secsCustom && b.dataset.preset === selectedDurationPreset);
+ });
+ document.getElementById('custom-duration-btn')?.classList.toggle('active', secsCustom);
+}
+
+// 저장된 루틴을 한 줄로. 네 개까지만 적고 나머지는 개수로 줄인다 —
+// 행 아래 줄은 한 줄 안에 들어가야 하고, 넘치면 말줄임이 되어 아무 정보도 못 준다.
+function routineSummary(keys){
+ if(!Array.isArray(keys) || !keys.length) return '';
+ const names = keys.map(k=>{
+  const ex = EXERCISES.find(e=>e.key===k);
+  return ex ? t(ex.label) : null;
+ }).filter(Boolean);
+ if(!names.length) return '';
+ if(names.length <= 4) return names.join(' · ');
+ return names.slice(0,3).join(' · ') + t(STATIC_UI.andMore).replace('%s', names.length - 3);
 }
 
 // ---------- STATE ----------
@@ -239,6 +317,8 @@ const warmupScreen = document.getElementById('warmup-screen');
 const warmupVideo = document.getElementById('warmup-video');
 const warmupSkipBtn = document.getElementById('warmup-skip-btn');
 const warmupToggle = document.getElementById('warmup-toggle');
+// 준비운동을 켜고 끄면 예상 시간이 달라진다 — 요약 카드가 그 자리에서 따라온다.
+if(warmupToggle) warmupToggle.addEventListener('change', ()=>{ try{ updateSetupSummary(); }catch(e){} });
 const gameScreen = document.getElementById('game-screen');
 const resultScreen = document.getElementById('result-screen');
 const app = document.getElementById('app');
@@ -246,6 +326,14 @@ const app = document.getElementById('app');
 // ---------- SUPABASE (선택 기능 — 로그인 없이도 앱은 완전히 돈다) ----------
 // 주소·키와 '언제 받을지'는 cloud/supabase.js 가 들고 있다.
 let currentUserId = null;
+
+// 홈의 두 바로가기는 더보기의 같은 버튼을 눌러 준다. 화면을 여는 논리가
+// 거기 한 벌로 있어서, 여기서 다시 부르면 두 벌이 되고 한쪽만 고쳐진다.
+[['home-recovery-btn', 'open-recovery-btn'], ['home-moves-btn', 'open-video-gallery-btn']]
+ .forEach(([from, to])=>{
+  const a = document.getElementById(from), b = document.getElementById(to);
+  if(a && b) a.addEventListener('click', ()=> b.click());
+ });
 
 const accountScreen = document.getElementById('account-screen');
 const openAccountBtn = document.getElementById('open-account-btn');
@@ -257,7 +345,9 @@ if(openAccountBtn && !isCloudEnabled()) openAccountBtn.hidden = true;
 // 화면 어디에도 안 적혀 있게 되는데, 브라우저 자료를 지우면 그날로
 // 끝이라 조용히 두면 안 된다.
 if(!isCloudEnabled()){
- const box = openAccountBtn && openAccountBtn.closest('.menu-box');
+ // 로그인 버튼은 홈 머리로 올라갔다(설계). 그래서 그 옆이 아니라
+ // 더보기 목록 아래에 붙인다 — 기록을 보러 오는 자리가 거기다.
+ const box = document.querySelector('#more-screen .menu-box');
  if(box && !document.getElementById('local-only-note')){
   const note = document.createElement('p');
   note.id = 'local-only-note';
@@ -352,7 +442,15 @@ function showScreen(el){
  const show = !!(savedPrefs && Array.isArray(savedPrefs.exKeys) && savedPrefs.exKeys.length);
  const moreBtn = document.getElementById('repeat-trigger-more');
  if(moreBtn) moreBtn.style.display = show ? '' : 'none';
- }catch(e){ console.error('repeat button refresh failed:', e); }
+ // '내 루틴' 줄에 몇 개가 저장돼 있는지. 0 개라면 들어가 봐야 빈 화면이라
+ // 그 사실을 여기서 미리 말해 준다.
+ const sub = document.getElementById('routines-count-sub');
+ if(sub){
+  const n = loadRoutines().length;
+  sub.textContent = n ? t(STATIC_UI.routinesSaved).replace('%s', n) : t(STATIC_UI.routinesNone);
+ }
+ updateBestBox();
+ }catch(e){ console.error('more screen refresh failed:', e); }
  }
  if(el === startScreen){
  try{
@@ -360,6 +458,10 @@ function showScreen(el){
  const show = !!(savedPrefs && Array.isArray(savedPrefs.exKeys) && savedPrefs.exKeys.length);
  const startBtn = document.getElementById('repeat-trigger-start');
  if(startBtn) startBtn.style.display = show ? '' : 'none';
+ // 행 아래 줄에 그 루틴이 무엇인지 적는다. '지난 루틴 다시' 만으로는
+ // 무엇이 다시 도는지 눌러 봐야만 알 수 있다.
+ const sub = document.getElementById('repeat-trigger-sub');
+ if(sub) sub.textContent = show ? routineSummary(savedPrefs.exKeys) : '';
  }catch(e){ console.error('repeat button refresh failed:', e); }
  try{ renderWeekStrip(); }catch(e){ console.error('week strip render failed:', e); }
  }
@@ -507,8 +609,15 @@ try{
  pauseBtn.addEventListener('click', ()=>{
  isPaused = true;
  pauseOverlay.classList.add('on');
+ // 몇 번째에서 멈췄는지 적는다(설계 11). 뒤 화면이 흐려져 있어서
+ // n/N 을 못 읽으므로, 여기서 다시 말해 주지 않으면 알 길이 없다.
+ const stepEl = document.getElementById('pause-step');
+ if(stepEl) stepEl.textContent = t(STATIC_UI.paused) + ' · ' + (missionIndex + 1) + '/' + missions.length;
  try{ syncPauseClipBtn(); }catch(e){ console.error('syncPauseClipBtn failed:', e); }
  Sound.stopBGM();
+ // 초점을 '계속하기' 로. 안 옮기면 키보드 사용자는 가려진 뒤 화면을
+ // 계속 돌아다니게 된다.
+ requestAnimationFrame(()=> resumeBtn?.focus?.());
  });
  }
  if(resumeBtn && pauseOverlay){
@@ -518,6 +627,11 @@ try{
  Sound.startBGM();
  });
  }
+ // Esc 는 '계속하기' 와 같다(설계 11). 멈춘 화면에서 Esc 가 아무 일도 안 하면
+ // 그 화면에 갇힌 것처럼 느껴진다.
+ document.addEventListener('keydown', (e)=>{
+ if(e.key === 'Escape' && pauseOverlay && pauseOverlay.classList.contains('on')) resumeBtn?.click();
+ });
  if(quitBtn && pauseOverlay){
  quitBtn.addEventListener('click', ()=>{
  const msg = t({ko:'정말 운동을 종료할까요? 지금까지 기록은 저장되지 않아요.', en:"Quit this workout? Today's progress won't be saved.", zh:'确定要结束这次训练吗？当前进度不会保存。'});
@@ -759,6 +873,10 @@ function loadSetupPrefs(){
 // Apply saved prefs to both the JS state AND the on-screen controls, so the
 // setup screen visually reflects what you picked last time instead of
 // silently resetting to the defaults every single visit.
+// 시간 칩은 세트 수를 고른 뒤에 나온다 — 두 줄을 한꺼번에 보여 주면
+// 어느 쪽을 먼저 정해야 하는지 알 수 없다.
+// 다만 기본값(8세트)이 이미 켜져 있으므로, 화면에 들어올 때는 이미 고른
+// 것으로 친다. 안 그러면 '8세트' 칩은 노란데 안내문은 아직 고르라고 말한다.
 function revealDurationCard(){
  const card = document.getElementById('duration-card');
  const hint = document.getElementById('duration-hint');
@@ -769,13 +887,13 @@ function applySetupPrefs(prefs){
  if(!prefs) return;
  try{
  if(Array.isArray(prefs.exKeys) && prefs.exKeys.length){
- selectedExKeys = new Set(prefs.exKeys);
+ selectedExKeys = pickSet(prefs.exKeys);
  renderExGrid();
  renderGroupRow();
  }
  if(prefs.durationPreset){
  selectedDurationPreset = prefs.durationPreset;
- document.querySelectorAll('#duration-row .duration-btn').forEach(b=>{
+ document.querySelectorAll('#duration-row [data-preset]').forEach(b=>{
  b.classList.toggle('active', b.dataset.preset === prefs.durationPreset);
  });
  const durationToggle = document.getElementById('custom-duration-toggle');
@@ -783,15 +901,14 @@ function applySetupPrefs(prefs){
  if(durationToggle){ durationToggle.checked = !!prefs.customDurationOn; }
  if(durationInput){
  if(prefs.customDurationVal) durationInput.value = prefs.customDurationVal;
- durationInput.style.display = prefs.customDurationOn ? '' : 'none';
  }
  if(prefs.customDurationOn){
- document.querySelectorAll('#duration-row .duration-btn').forEach(b=> b.classList.remove('active'));
+ document.querySelectorAll('#duration-row [data-preset]').forEach(b=> b.classList.remove('active'));
  }
  }
  if(prefs.totalSets){
  selectedTotalSets = prefs.totalSets;
- document.querySelectorAll('#setcount-row .duration-btn').forEach(b=>{
+ document.querySelectorAll('#setcount-row [data-count]').forEach(b=>{
  b.classList.toggle('active', parseInt(b.dataset.count,10) === prefs.totalSets);
  });
  const setToggle = document.getElementById('custom-setcount-toggle');
@@ -799,15 +916,15 @@ function applySetupPrefs(prefs){
  if(setToggle){ setToggle.checked = !!prefs.customSetOn; }
  if(setInput){
  if(prefs.customSetVal) setInput.value = prefs.customSetVal;
- setInput.style.display = prefs.customSetOn ? '' : 'none';
  }
  if(prefs.customSetOn){
- document.querySelectorAll('#setcount-row .duration-btn').forEach(b=> b.classList.remove('active'));
+ document.querySelectorAll('#setcount-row [data-count]').forEach(b=> b.classList.remove('active'));
  }
  revealDurationCard();
  }
  if(warmupToggle) warmupToggle.checked = !!prefs.warmupOn;
  updateSetNote();
+ try{ updateStartNote(); }catch(e){}
  }catch(e){ console.error('applySetupPrefs failed:', e); }
 }
 const PROFILE_KEY = 'wodrush_profile_v1';
@@ -993,18 +1110,64 @@ async function checkSupabaseSession(){
  }catch(e){ console.error('session check failed:', e); }
 }
 
+// 더보기 맨 아래의 '최고 기록' 카드(설계 16). 숫자 하나와 그 곁줄만 둔다 —
+// 기록 화면을 여기 요약하려 들면 그 화면이 있을 이유가 없어진다.
 function updateBestBox(){
- const labelEl = document.getElementById('best-score-label');
- if(labelEl) labelEl.textContent = t({ko:'내 기록', en:'My Stats', zh:'我的记录'});
- if(myProfile.totalCompletions > 0){
- bestScoreBox.style.display = 'block';
- const lvl = levelFor(myProfile.totalCompletions);
- bestScoreVal.textContent = (lvl.icon ? lvl.icon + ' ' : '') +
- t({ko:myProfile.currentStreak + '일 연속 · 총 ' + myProfile.totalCompletions + '회',
- en:myProfile.currentStreak + '-day streak · ' + myProfile.totalCompletions + ' total',
- zh:'连续' + myProfile.currentStreak + '天 · 累计' + myProfile.totalCompletions + '次'});
- }
+ if(!bestScoreBox) return;
+ // 한 번도 안 했으면 감춘다. 0점을 크게 보여 주는 것은 성적표다.
+ if(!(myProfile.totalCompletions > 0)){ bestScoreBox.hidden = true; return; }
+ bestScoreBox.hidden = false;
+ if(bestScoreVal) bestScoreVal.textContent = myProfile.bestScoreEver || 0;
+ const metaEl = document.getElementById('best-score-meta');
+ if(metaEl) metaEl.textContent = t(STATIC_UI.pointUnit) + ' · ' + t({
+  ko: '총 ' + myProfile.totalCompletions + '회 완주',
+  en: myProfile.totalCompletions + ' sessions total',
+  zh: '累计完成' + myProfile.totalCompletions + '次'});
 }
+
+// 오늘의 챌린지(설계 16). 규칙은 하나다 — 오늘 세 번 완주.
+// 이미 있는 기록만으로 세므로 새 저장 항목을 만들지 않는다.
+// 기록을 CSV 로 뽑는다(설계 17의 '기록 내보내기').
+// 이 앱은 기록을 이 기기에만 두므로, 기기를 바꾸거나 브라우저 데이터를
+// 지우면 그걸로 끝이다 — 내보내기가 유일한 백업 수단이다.
+function exportHistoryCsv(){
+ try{
+ const rows = [['date', 'time', 'group']];
+ (myProfile.history || []).forEach(e=>{
+  const d = new Date(histTime(e));
+  rows.push([
+   d.toISOString().slice(0, 10),
+   d.toTimeString().slice(0, 5),
+   (typeof e === 'object' && e.g) ? e.g : '',
+  ]);
+ });
+ if(rows.length === 1){ toast(t(STATIC_UI.nothingToExport)); return; }
+ // BOM 을 붙인다 — 없으면 엑셀이 한글을 깨서 연다.
+ const csv = '﻿' + rows.map(r=> r.join(',')).join('\n');
+ const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = 'qfit-history-' + todayStr() + '.csv';
+ document.body.appendChild(a); a.click(); document.body.removeChild(a);
+ setTimeout(()=> URL.revokeObjectURL(url), 4000);
+ }catch(e){ console.error('csv export failed:', e); }
+}
+
+// 되돌릴 수 없는 일이라 두 번 묻는다. 한 번만 물으면 목록을 훑다가
+// 잘못 눌러 그대로 지워지는 일이 실제로 일어난다.
+function wipeAllData(){
+ if(!confirm(t(STATIC_UI.wipeConfirm1))) return;
+ if(!confirm(t(STATIC_UI.wipeConfirm2))) return;
+ try{
+ Object.keys(localStorage)
+  .filter(k=> k.startsWith('wodrush_'))
+  .forEach(k=> localStorage.removeItem(k));
+ }catch(e){ console.error('wipe failed:', e); }
+ location.reload();
+}
+
+// 설계 16 에는 '오늘의 챌린지' 배너가 있지만 만들지 않는다 — 챌린지는 // FR-05 로 걷어낸 기능이다(커밋 150da98). 설계 파일은 그 결정보다 앞선 그림이라, // 둘이 어긋나면 요구사항이 이긴다.
 
 function todayStr(){
  return new Date().toISOString().slice(0,10);
@@ -1048,40 +1211,47 @@ function renderWeekStrip(){
  const strip = document.getElementById('week-strip');
  if(!strip) return;
  strip.innerHTML = '';
- // rolling 7 days ending today — count how many times per day, not just
- // done/not-done, so the color can reflect how many rounds that day
+
  const countByDate = {};
  (myProfile.history || []).forEach(e=>{
- const d = new Date(histTime(e));
- const key = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
- countByDate[key] = (countByDate[key] || 0) + 1;
+  const d = new Date(histTime(e));
+  countByDate[d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate()] = 1;
  });
- // 1회=빨강 2회=주황 3회=노랑 4회=초록 5회=파랑 6회=남색 7회=보라 8회+=무지개
- const RAINBOW = ['#ff3b3b','#ff8a00','#ffd60a','#3ec96a','#3ea0ff','#3a4bdb','#9a3fe0'];
- const dowLabels = t({ko:['일','월','화','수','목','금','토'], en:['S','M','T','W','T','F','S'], zh:['日','一','二','三','四','五','六']});
+
+ // 설계의 주는 월요일에 시작한다. 오늘로 끝나는 굴러가는 7일이 아니라
+ // '이번 주' 라 카드 제목과 같은 말이 되어야 한다.
+ const dow = t({ko:['월','화','수','목','금','토','일'], en:['M','T','W','T','F','S','S'], zh:['一','二','三','四','五','六','日']});
  const today = new Date();
- for(let i=6; i>=0; i--){
- const d = new Date(today);
- d.setDate(today.getDate() - i);
- const key = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
- const isToday = i === 0;
- const count = countByDate[key] || 0;
- const cell = document.createElement('div');
- cell.className = 'week-day' + (isToday ? ' today' : '') + (count > 0 ? ' done' : '');
- const dot = document.createElement('span');
- dot.className = 'wd-dot';
- if(count >= 8){
- dot.style.background = 'conic-gradient(' + RAINBOW.concat(RAINBOW[0]).join(',') + ')';
- dot.textContent = '✓';
- } else if(count > 0){
- dot.style.background = RAINBOW[count - 1];
- dot.textContent = '✓';
- } else {
- dot.textContent = d.getDate();
+ const monday = new Date(today);
+ monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+ monday.setHours(0,0,0,0);
+
+ for(let i = 0; i < 7; i++){
+  const d = new Date(monday);
+  d.setDate(monday.getDate() + i);
+  const done = !!countByDate[d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate()];
+  // 다섯 가지 상태는 설계의 cell() 과 같다: done · today · miss · future · off.
+  // 완주가 오늘보다 먼저 오는 게 중요하다 — 오늘 이미 했으면 테두리가 아니라
+  // 채워진 칸으로 보여야 "오늘 것은 끝났다" 가 한눈에 읽힌다.
+  const isToday = d.toDateString() === today.toDateString();
+  const state = done ? 'done' : (isToday ? 'today' : (d > today ? 'future' : 'miss'));
+
+  const cell = document.createElement('div');
+  cell.className = 'week-day ' + state;
+  cell.innerHTML = '<span class="wd-label">' + dow[i] + '</span>';
+  const dot = document.createElement('span');
+  dot.className = 'wd-dot';
+  dot.textContent = done ? '✓' : '';
+  cell.appendChild(dot);
+  strip.appendChild(cell);
  }
- cell.innerHTML = '<span class="wd-label">' + dowLabels[d.getDay()] + '</span>';
- cell.appendChild(dot);
- strip.appendChild(cell);
+
+ // 카드 머리의 오른쪽. 기록이 없으면 숫자 대신 다음 할 일을 말한다 —
+ // '연속 0일' 은 성적표처럼 읽혀서 처음 여는 사람을 쫓아낸다.
+ const line = document.getElementById('streak-line');
+ if(line){
+  const st = myProfile.currentStreak || 0;
+  line.textContent = st > 0 ? t(STATIC_UI.streakDays).replace('%s', st) : t(STATIC_UI.streakNone);
  }
 }
 
@@ -1114,10 +1284,23 @@ function renderCalendar(){
  }
  for(let day=1; day<=daysInMonth; day++){
  const el = document.createElement('div');
- el.className = 'cal-day' + (doneDays.has(day) ? ' done' : '') + (day === todayDate ? ' today' : '');
+ // 앞으로 올 날은 '미완' 이 아니다 — 아직 오지 않았을 뿐이다.
+ // 같은 회색으로 칠하면 이번 달 내내 실패한 것처럼 보인다.
+ const state = doneDays.has(day) ? ' done'
+  : (day === todayDate ? ' today' : (day > todayDate ? ' future' : ' miss'));
+ el.className = 'cal-day' + state;
  el.textContent = String(day);
  grid.appendChild(el);
  }
+
+ // 카드 머리: 이번 달과 완주 일수.
+ const monthEl = document.getElementById('cal-month');
+ if(monthEl) monthEl.textContent = t({
+  ko: year + '년 ' + (month+1) + '월',
+  en: new Date(year, month, 1).toLocaleDateString('en-US', { month:'long', year:'numeric' }),
+  zh: year + '年' + (month+1) + '月'});
+ const doneEl = document.getElementById('cal-done');
+ if(doneEl) doneEl.textContent = t(STATIC_UI.calDoneDays).replace('%s', doneDays.size);
 }
 
 function renderRecordsScreen(){
@@ -1231,6 +1414,8 @@ try{
  if(videoLightboxEl) videoLightboxEl.addEventListener('click', (e)=>{ if(e.target === videoLightboxEl) closeVideoLightbox(); });
 
  function renderVideoGallery(){
+ const countEl = document.getElementById('moves-count');
+ if(countEl) countEl.textContent = t(STATIC_UI.movesCount).replace('%s', VIDEO_CLIPS.length);
  if(!videoGalleryGrid || videoGalleryGrid.children.length) return; // render once
  VIDEO_CLIPS.forEach(clip=>{
  const card = document.createElement('div');
@@ -1252,22 +1437,42 @@ try{
  video.style.display = 'none';
  errMsg.style.display = 'flex';
  });
+ // 영상 위의 재생 표식. 이게 없으면 정지 프레임이 그냥 사진으로 읽혀서
+ // 누를 수 있다는 걸 모른다(설계 15).
+ const shot = document.createElement('div');
+ shot.className = 'video-clip-shot';
+ const play = document.createElement('span');
+ play.className = 'video-clip-play';
+ play.innerHTML = ICON.play;
+ shot.appendChild(video);
+ shot.appendChild(errMsg);
+ shot.appendChild(play);
+
  const textWrap = document.createElement('div');
  textWrap.className = 'video-clip-text';
  const label = document.createElement('div');
  label.className = 'video-clip-label';
  label.textContent = clip.label;
+ // 카드에는 부위와 큐만. 긴 설명은 눌러서 크게 볼 때 읽는다 —
+ // 열두 장이 각각 세 줄이면 화면이 목록이 아니라 글이 된다.
+ const ex = EXERCISES.find(e=>e.key === clip.key);
+ const g = ex && MUSCLE_GROUPS.find(x=>x.id === EX_TO_GROUP[ex.key]);
  const desc = document.createElement('div');
  desc.className = 'video-clip-desc';
- desc.textContent = clip.desc;
+ desc.textContent = [g ? t(g.label) : '', ex ? t(ex.type === 'hold' ? STATIC_UI.kindHold : STATIC_UI.kindReps) : '']
+  .filter(Boolean).join(' · ');
  const tip = document.createElement('div');
  tip.className = 'video-clip-tip';
  tip.textContent = clip.tip;
+ const risk = document.createElement('div');
+ risk.className = 'video-clip-risk';
+ // risk 문구가 이미 '부상 위험 부위:' 로 시작한다 — 앞에 '주의' 를 또 붙이지 않는다.
+ risk.textContent = clip.risk || '';
  textWrap.appendChild(label);
  textWrap.appendChild(desc);
  textWrap.appendChild(tip);
- card.appendChild(video);
- card.appendChild(errMsg);
+ textWrap.appendChild(risk);
+ card.appendChild(shot);
  card.appendChild(textWrap);
  card.addEventListener('click', ()=> openVideoLightbox(clip));
  videoGalleryGrid.appendChild(card);
@@ -1317,18 +1522,15 @@ try{
  showScreen(startScreen);
  });
  }
- const jumpToInjuryBtn = document.getElementById('jump-to-injury-btn');
- if(jumpToInjuryBtn){
- jumpToInjuryBtn.addEventListener('click', ()=>{
- const anchor = document.getElementById('injury-section-anchor');
- if(anchor) anchor.scrollIntoView({ behavior:'smooth', block:'start' });
- });
- }
+ // '부위별 부상 대처법 바로가기 ↓' 버튼은 없앴다 — 부위 검색이 화면 맨 위로
+ // 올라와서 가리킬 곳이 없어졌다(설계 14).
  // 아코디언은 이제 데이터로 그려지므로, 부팅 때 한 번 훑어 붙이면 아직 없는
  // 요소에 붙게 된다. 목록 자체에 걸어 두고 위임한다.
- const injuryList = document.getElementById('injury-list');
- if(injuryList){
- injuryList.addEventListener('click', (e)=>{
+ // 아코디언 둘(부위별 대처법 · 회복 습관)이 같은 방식으로 열린다.
+ // 화면에 위임해 두면 어느 쪽을 다시 그려도 다시 연결할 필요가 없다.
+ const recoveryScreenEl = document.getElementById('recovery-screen');
+ if(recoveryScreenEl){
+ recoveryScreenEl.addEventListener('click', (e)=>{
  const btn = e.target.closest('.injury-summary');
  if(!btn) return;
  const acc = btn.parentElement;
@@ -1388,14 +1590,21 @@ function weeklyBodyparts(){
 // 회복 화면을 데이터로 그린다.
 // 언어가 바뀌면 다시 그려야 하므로 applyStaticTranslations 에서도 부른다.
 function renderRecovery(){
+ // 회복 습관 카드(설계 14). 배지 + 제목 한 줄로 접어 두고, 누르면 펼친다.
+ // 다섯 카드의 스무 줄이 늘 펼쳐져 있으면 화면이 네 배로 길어지고,
+ // 정작 지금 필요한 부위별 대처법이 그 아래로 밀려난다.
  const cards = document.getElementById('recovery-cards');
  if(cards){
  cards.innerHTML = RECOVERY_CARDS.map(c =>
- '<div class="recovery-card">' +
- '<div class="recovery-card-title">' + t(c.title) + '</div>' +
+ '<div class="card injury-accordion recovery-card">' +
+ '<button type="button" class="injury-summary">' +
+ '<span class="rc-tag">' + t(c.tag) + '</span>' +
+ '<span class="rc-title">' + t(c.title) + '</span>' +
+ '</button>' +
+ '<div class="injury-body">' +
  '<ol class="recovery-list">' +
  c.items.map(it => '<li>' + t(it) + '</li>').join('') +
- '</ol></div>'
+ '</ol></div></div>'
  ).join('');
  }
  const list = document.getElementById('injury-list');
@@ -1413,6 +1622,35 @@ function renderRecovery(){
  '</div></div>'
  ).join('');
  }
+ renderInjuryChips();
+}
+
+// 부위 칩(설계 14). 검색창에 부위 이름을 넣어 주는 지름길이다 —
+// 이미 있는 거르기 하나를 두 방식으로 열어 주는 것이라, 걸러진 결과가
+// 칩과 검색어 사이에서 갈라지는 일이 없다.
+function renderInjuryChips(){
+ const row = document.getElementById('injury-chip-row');
+ const input = document.getElementById('injury-search-input');
+ if(!row || !input) return;
+ row.innerHTML = '';
+ const apply = (term)=>{
+  input.value = term;
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  renderInjuryChips();
+ };
+ const mk = (label, term)=>{
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'chip';
+  const on = input.value.trim() === term;
+  if(on) b.dataset.on = '1';
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  b.textContent = label;
+  b.addEventListener('click', ()=> apply(on ? '' : term));
+  return b;
+ };
+ row.appendChild(mk(t(STATIC_UI.filterAll), ''));
+ INJURY_GUIDES.forEach(g => row.appendChild(mk(t(g.part), t(g.part))));
 }
 
 function renderBodyparts(){
@@ -1473,7 +1711,44 @@ function syncPlayBtn(){
  if(!btn) return;
  const none = selectedExKeys.size === 0;
  btn.disabled = none;
- btn.textContent = none ? t(STATIC_UI.pickAtLeastOne) : t(STATIC_UI.startWod);
+ // 이 버튼은 이제 바로 시작하지 않고 미리보기로 간다(설계 05→06).
+ // 라벨이 'START Q' 였을 때는 누르면 곧장 카운트다운이 도는 줄 알게 된다.
+ btn.textContent = none ? t(STATIC_UI.pickAtLeastOne) : t(STATIC_UI.previewBtn);
+}
+
+// 거르기 상태. 'all' 이거나 MUSCLE_GROUPS 의 id, 또는 난이도('novice'/'pro').
+// 칩은 고르는 것이 아니라 거르는 것이다 — 예전에는 부위 칩을 누르면 선택이
+// 그 묶음으로 통째로 갈아 끼워져서, 지금까지 고른 것이 조용히 사라졌다.
+let exFilter = 'all';
+
+// 한 판에 고르는 동작의 상한(설계 03). 세트 수와는 다른 축이다 —
+// 동작 넷을 여러 세트 도는 것이지, 동작 수를 늘리는 게 아니다.
+const MAX_PICKS = 4;
+
+// 고른 목록을 만드는 유일한 문. 랜덤·AI·저장된 루틴·공유 링크가 전부
+// 여기를 지난다 — 상한을 한 곳에서만 지켜야 어느 길로 들어와도 같다.
+// 예전에 저장해 둔 다섯 개짜리 루틴을 불러와도 여기서 넷으로 잘린다.
+function pickSet(keys){
+ return new Set((Array.isArray(keys) ? keys : []).slice(0, MAX_PICKS));
+}
+
+// 거르는 칩은 다섯 개다: 전체 + 부위 넷(설계 03).
+function exFilterList(){
+ return [{ id:'all', label: STATIC_UI.filterAll }]
+  .concat(MUSCLE_GROUPS.map(g=>({ id:g.id, label:g.label })));
+}
+
+function exMatchesFilter(ex){
+ if(exFilter === 'all') return true;
+ const g = MUSCLE_GROUPS.find(x=>x.id === exFilter);
+ return !!(g && g.keys.includes(ex.key));
+}
+
+// 카드 아래 한 줄. 부위와 동작 종류만 — 목표 횟수는 이 앱에 없다(전부 시간 기반).
+function exMeta(ex){
+ const g = MUSCLE_GROUPS.find(x=>x.id === EX_TO_GROUP[ex.key]);
+ const kind = t(ex.type === 'hold' ? STATIC_UI.kindHold : STATIC_UI.kindReps);
+ return (g ? t(g.label) : '') + ' · ' + kind;
 }
 
 function renderExGrid(){
@@ -1481,53 +1756,135 @@ function renderExGrid(){
  const searchEl = document.getElementById('ex-search-input');
  const term = searchEl ? searchEl.value.trim().toLowerCase() : '';
  const ordered = EXERCISES.slice().sort((a,b)=> (a.pro?1:0) - (b.pro?1:0));
- const filtered = term ? ordered.filter(ex=> t(ex.label).toLowerCase().includes(term)) : ordered;
- if(term && filtered.length === 0){
+ const filtered = ordered
+  .filter(exMatchesFilter)
+  .filter(ex=> !term || t(ex.label).toLowerCase().includes(term));
+
+ if(filtered.length === 0){
  // 검색어를 그대로 인용한다 — '결과 없음' 만 뜨면 자기가 뭘 쳤는지 다시
  // 확인해야 하고, 오타였다는 것도 그때 알게 된다.
+ // 거르기만 걸려 있고 검색어가 없을 때는 인용할 말이 없으므로 일반 문구를 쓴다.
  const empty = document.createElement('div');
- empty.className = 'search-empty';
- empty.innerHTML = t(STATIC_UI.searchEmptyQuoted).replace('%s', term.replace(/[<>&]/g, '')) +
- ' <button type="button" class="clear-filter" id="ex-clear-filter">' + t(STATIC_UI.clearFilter) + '</button>';
- exGrid.appendChild(empty);
- const clearBtn = empty.querySelector('#ex-clear-filter');
- if(clearBtn) clearBtn.addEventListener('click', ()=>{
- if(searchEl){ searchEl.value = ''; }
- renderExGrid();
+ empty.className = 'empty-state ex-empty';
+ const line = document.createElement('p');
+ line.className = 'empty-line';
+ line.textContent = term
+  ? t(STATIC_UI.searchEmptyQuoted).replace('%s', term)
+  : t(STATIC_UI.searchEmpty);
+ const hint = document.createElement('p');
+ hint.className = 'dim';
+ hint.textContent = t(STATIC_UI.resetFilterHint);
+ const clearBtn = document.createElement('button');
+ clearBtn.type = 'button';
+ clearBtn.className = 'sec2';
+ clearBtn.textContent = t(STATIC_UI.resetFilters);
+ clearBtn.addEventListener('click', ()=>{
+  if(searchEl) searchEl.value = '';
+  exFilter = 'all';
+  renderExGrid();
+  renderGroupRow();
  });
+ empty.append(line, hint, clearBtn);
+ exGrid.appendChild(empty);
  }
+
  filtered.forEach(ex=>{
- const div = document.createElement('div');
  const checked = selectedExKeys.has(ex.key);
- div.className = 'ex-chip' + (checked ? ' checked' : '') + (ex.pro ? ' pro' : '');
- div.innerHTML = '<span class="box"></span><span class="name">'+t(ex.label)+'</span>';
- div.addEventListener('click', ()=>{
+ const btn = document.createElement('button');
+ btn.type = 'button';
+ btn.className = 'ex-card' + (checked ? ' checked' : '') + (ex.pro ? ' pro' : '');
+ btn.setAttribute('role', 'checkbox');
+ btn.setAttribute('aria-checked', checked ? 'true' : 'false');
+
+ const shot = document.createElement('span');
+ shot.className = 'ex-card-photo';
+ const file = (PHOTO_SEQUENCES[ex.key] || [])[0];
+ if(file){
+  const img = document.createElement('img');
+  img.src = photoUrl(file);
+  img.alt = '';
+  img.loading = 'lazy';
+  img.decoding = 'async';
+  shot.appendChild(img);
+ }
+
+ const head = document.createElement('span');
+ head.className = 'ex-card-head';
+ const name = document.createElement('span');
+ name.className = 'ex-card-name';
+ name.textContent = t(ex.label);
+ const box = document.createElement('span');
+ box.className = 'ex-card-check';
+ box.innerHTML = ICON.check;
+ head.append(name, box);
+
+ const meta = document.createElement('span');
+ meta.className = 'ex-card-meta dim';
+ meta.textContent = exMeta(ex);
+
+ btn.append(shot, head, meta);
+ btn.addEventListener('click', ()=>{
  // 마지막 하나를 못 지우게 막지 않는다. 눌러도 아무 일이 없으면 고장으로
  // 읽히고, 왜 안 되는지도 알 수 없다. 대신 0개일 때 시작 버튼이 말한다.
  if(selectedExKeys.has(ex.key)) selectedExKeys.delete(ex.key);
+ else if(selectedExKeys.size >= MAX_PICKS){
+  // 상한에서 막을 때는 반드시 말해 준다. 눌렀는데 체크가 안 켜지기만 하면
+  // 카드가 고장 난 것으로 읽힌다(설계 03의 '4개 초과' 규칙).
+  toast(t(STATIC_UI.maxPicks).replace('%s', MAX_PICKS));
+  return;
+ }
  else selectedExKeys.add(ex.key);
  renderExGrid();
  renderGroupRow();
  syncPlayBtn();
+ syncSelectCount();
  });
- exGrid.appendChild(div);
+ exGrid.appendChild(btn);
  });
+
+ syncSelectCount();
+}
+
+// 머리 오른쪽의 '고른 개수'. aria-live 로 두는 이유는 카드를 눌러도 화면이
+// 안 바뀌기 때문이다 — 눈으로는 체크가 보이지만 스크린리더에는 아무 일도 없다.
+function syncSelectCount(){
+ const el = document.getElementById('select-count');
+ if(el){
+ el.textContent = selectedExKeys.size + ' / ' + MAX_PICKS;
+ el.setAttribute('aria-live', 'polite');
+ el.setAttribute('aria-label', t(STATIC_UI.selectedCount).replace('%s', selectedExKeys.size));
+ }
+ syncSelectCta();
+}
+
+// 비활성 상태에서도 무엇을 해야 하는지 라벨이 말한다. '다음' 이 회색으로
+// 죽어 있기만 하면 왜 못 누르는지 알 길이 없다.
+function syncSelectCta(){
+ const btn = document.getElementById('manual-confirm-btn');
+ if(!btn) return;
+ const none = selectedExKeys.size === 0;
+ btn.disabled = none;
+ btn.textContent = none
+  ? t(STATIC_UI.pickAtLeastOne)
+  : t(STATIC_UI.toSetupWithCount).replace('%s', selectedExKeys.size);
 }
 
 function renderGroupRow(){
  groupRow.innerHTML = '';
- MUSCLE_GROUPS.forEach(g=>{
- const isActive = g.keys.length === selectedExKeys.size && g.keys.every(k=> selectedExKeys.has(k));
- const div = document.createElement('div');
- div.className = 'group-btn' + (isActive ? ' active' : '');
- div.dataset.group = g.id;
- div.innerHTML = t(g.label);
- div.addEventListener('click', ()=>{
- selectedExKeys = new Set(g.keys);
+ exFilterList().forEach(f=>{
+ const btn = document.createElement('button');
+ btn.type = 'button';
+ btn.className = 'chip';
+ btn.dataset.group = f.id;
+ if(exFilter === f.id) btn.dataset.on = '1';
+ btn.setAttribute('aria-pressed', exFilter === f.id ? 'true' : 'false');
+ btn.textContent = t(f.label);
+ btn.addEventListener('click', ()=>{
+ exFilter = f.id;
  renderExGrid();
  renderGroupRow();
  });
- groupRow.appendChild(div);
+ groupRow.appendChild(btn);
  });
 }
 try{ renderExGrid(); }catch(e){ console.error('renderExGrid failed:', e); }
@@ -1536,41 +1893,43 @@ try{ renderGroupRow(); }catch(e){ console.error('renderGroupRow failed:', e); }
 // ---------- START: mode selection ----------
 function pickModeAndGo(keys){
  Sound.unlock();
- selectedExKeys = new Set(keys);
+ selectedExKeys = pickSet(keys);
  renderExGrid();
  renderGroupRow();
  showScreen(setupScreen);
  try{ syncPlayBtn(); }catch(e){}
+ try{ revealDurationCard(); }catch(e){}
 }
 try{
  const modeRandomBtn = document.getElementById('mode-random');
  const modeManualBtn = document.getElementById('mode-manual');
- if(modeRandomBtn) modeRandomBtn.addEventListener('click', ()=> pickModeAndGo(EXERCISES.map(e=>e.key)));
+ // '고민 없이 4개 뽑기'(설계 02). 예전에는 열두 개를 통째로 넘겼는데,
+ // 그러면 '랜덤' 이 아니라 '전부' 다 — 매번 같은 구성이 나온다.
+ if(modeRandomBtn) modeRandomBtn.addEventListener('click', ()=>{
+ const pool = EXERCISES.map(e=>e.key);
+ for(let i = pool.length - 1; i > 0; i--){
+  const j = Math.floor(Math.random() * (i + 1));
+  [pool[i], pool[j]] = [pool[j], pool[i]];
+ }
+ pickModeAndGo(pool);
+ });
  if(modeManualBtn) modeManualBtn.addEventListener('click', ()=>{
  Sound.unlock();
  showScreen(manualSelectScreen);
  });
 }catch(e){ console.error('mode buttons failed:', e); }
 
-try{
- const quickBeginnerBtn = document.getElementById('quick-beginner');
- const quickAdvancedBtn = document.getElementById('quick-advanced');
- if(quickBeginnerBtn) quickBeginnerBtn.addEventListener('click', ()=>{
- selectedExKeys = new Set(EXERCISES.filter(e=>!e.pro).map(e=>e.key));
- renderExGrid();
- renderGroupRow();
- });
- if(quickAdvancedBtn) quickAdvancedBtn.addEventListener('click', ()=>{
- selectedExKeys = new Set(EXERCISES.map(e=>e.key));
- renderExGrid();
- renderGroupRow();
- });
-}catch(e){ console.error('difficulty quick-select buttons failed:', e); }
+// 난이도별 빠른 선택은 없앴다(설계 03). 초보·숙련은 이제 칩 하나로 '거르기' 다 —
+// 누르면 지금까지 고른 것이 통째로 갈아 끼워지던 동작이 사라졌다.
 
 // ---------- AI ROUTINE QUIZ ----------
+// 질문이 이 화면에서 제일 큰 글자다(--t-title, 40px). 390 폭에서 한 줄에
+// 열네 자쯤 들어가므로 그 안에서 끝나야 두 줄로 접히지 않는다.
+// 중국어가 빠져 있어서 중국어로 열면 한국어 질문이 나왔다.
 const QUIZ_TITLES = {
- ko: ['오늘 목표가 무엇입니까?', '난이도는?'],
- en: ["What's today's goal?", 'Difficulty?'],
+ ko: ['무엇이 목표인가요?', '어느 정도로 할까요?'],
+ en: ["What's your goal?", 'How hard?'],
+ zh: ['你的目标是什么？', '强度选多大？'],
 };
 let quizAnswers = {};
 try{
@@ -1583,7 +1942,7 @@ try{
  // 예전에는 시작 버튼을 숨기고 패널을 그 자리에 펼쳤는데, 닫는 길이 없어서
  // 한 번 열면 홈으로 되돌릴 수가 없었다. 시트는 배경을 누르거나 아래로
  // 끌어내리거나 Esc 로 닫힌다.
- openSheet(oneMinPanel, { title: '어떻게 시작할까요', from: oneMinStartBtn });
+ openSheet(oneMinPanel, { title: t(STATIC_UI.startSheetTitle), from: oneMinStartBtn });
  });
  }
  const aiQuizBackBtn = document.getElementById('ai-quiz-back-btn');
@@ -1622,24 +1981,69 @@ try{
 
  function showQuizStep(n){
  document.querySelectorAll('.quiz-step').forEach(s=> s.style.display = (Number(s.dataset.step) === n) ? 'flex' : 'none');
+ // 점은 켜진 쪽이 길어진다(8 → 20px). 색만 바꾸면 색을 구별하기 어려운
+ // 사람에게는 두 점이 늘 같아 보인다.
  document.querySelectorAll('.quiz-progress .dot').forEach(d=> d.classList.toggle('active', Number(d.dataset.step) === n));
  const titleEl = document.getElementById('quiz-title');
  if(titleEl) titleEl.textContent = (QUIZ_TITLES[LANG] || QUIZ_TITLES.ko)[n];
+ const labelEl = document.getElementById('quiz-step-label');
+ if(labelEl) labelEl.textContent = t(STATIC_UI.quizStepOf).replace('%s', n + 1);
+ const subEl = document.getElementById('quiz-sub');
+ if(subEl) subEl.textContent = t(n === 0 ? STATIC_UI.quizSub1 : STATIC_UI.quizSub2);
+ // 되돌아왔을 때 지난번에 고른 것이 표시돼 있어야 한다.
+ document.querySelectorAll('#quiz-step-0 .quiz-btn').forEach(b=>{
+  const on = quizAnswers.goal === b.dataset.goal;
+  b.classList.toggle('on', on);
+  b.setAttribute('aria-checked', on ? 'true' : 'false');
+ });
+ document.querySelectorAll('#quiz-step-1 .quiz-btn').forEach(b=>{
+  const on = quizAnswers.level === b.dataset.level;
+  b.classList.toggle('on', on);
+  b.setAttribute('aria-checked', on ? 'true' : 'false');
+ });
+ // 세기 설명은 '가볍게' 같은 상대어가 아니라 실제 값이어야 한다 —
+ // 셋을 나란히 놓기 전에는 무엇이 얼마나 가벼운지 알 수 없다.
+ Object.entries(QUIZ_LEVELS).forEach(([id, lv])=>{
+  const el = document.getElementById('quiz-level-' + id);
+  if(el) el.textContent = lv.sets + t(STATIC_UI.setsUnit) + ' · ' +
+   (DURATION_PRESETS[lv.preset] || DURATION_PRESETS.normal).base + t(STATIC_UI.secUnit);
+ });
  }
 
+ // 2단계의 세 갈래가 정하는 것. 세기 하나로 '어떤 동작' 과 '얼마나' 를
+ // 같이 정한다 — 설계가 선택지 설명에 '4세트 · 40초' 라고 적어 둔 그 값이다.
+ const QUIZ_LEVELS = {
+ light:  { sets: 4,  preset: 'short',  pro: false },
+ normal: { sets: 8,  preset: 'normal', pro: false },
+ hard:   { sets: 12, preset: 'long',   pro: true  },
+ };
+
  function finishQuiz(){
+ const lv = QUIZ_LEVELS[quizAnswers.level] || QUIZ_LEVELS.normal;
  const pool = AI_GOAL_POOLS[quizAnswers.goal] || AI_GOAL_POOLS.full;
  let keys = pool.filter(k=>{
- if(quizAnswers.level === 'advanced') return true;
+ if(lv.pro) return true;
  const ex = EXERCISES.find(e=>e.key===k);
  return ex && !ex.pro;
  });
  if(keys.length < 2) keys = pool; // fallback if filtering left too few
- selectedExKeys = new Set(keys);
+ selectedExKeys = pickSet(keys);
+
+ // 세기가 세트 수와 시간까지 정한다. 안 그러면 '세게' 를 골라도
+ // 다음 화면의 요약 카드가 기본값 그대로라 고른 것이 무시된 것처럼 보인다.
+ selectedTotalSets = lv.sets;
+ selectedDurationPreset = lv.preset;
+ const setToggle = document.getElementById('custom-setcount-toggle');
+ const durToggle = document.getElementById('custom-duration-toggle');
+ if(setToggle) setToggle.checked = false;
+ if(durToggle) durToggle.checked = false;
+ revealDurationCard();
+
  renderExGrid();
  renderGroupRow();
  showScreen(setupScreen);
  try{ syncPlayBtn(); }catch(e){}
+ try{ updateSetNote(); updateStartNote(); }catch(e){}
  }
 
  document.querySelectorAll('#quiz-step-0 .quiz-btn').forEach(btn=>{
@@ -1647,6 +2051,15 @@ try{
  });
  document.querySelectorAll('#quiz-step-1 .quiz-btn').forEach(btn=>{
  btn.addEventListener('click', ()=>{ quizAnswers.level = btn.dataset.level; finishQuiz(); });
+ });
+
+ // 건너뛰기 — 두 문항짜리 퀴즈라도 나가는 길은 늘 열어 둔다.
+ // 답이 없으면 지금 고른 동작 그대로 설정으로 넘긴다(퀴즈 전 상태를 지키는 쪽).
+ const quizSkipBtn = document.getElementById('quiz-skip-btn');
+ if(quizSkipBtn) quizSkipBtn.addEventListener('click', ()=>{
+ Sound.unlock();
+ showScreen(setupScreen);
+ try{ syncPlayBtn(); }catch(e){}
  });
 }catch(e){ console.error('AI quiz setup failed:', e); }
 
@@ -1688,9 +2101,9 @@ function renderRoutinesList(){
  row.querySelector('.rname').textContent = r.name;
  row.querySelector('.rmeta').textContent = r.keys.length + '개 운동 · ' + (r.duration||'normal');
  row.querySelector('.load-btn').addEventListener('click', ()=>{
- selectedExKeys = new Set(r.keys);
+ selectedExKeys = pickSet(r.keys);
  selectedDurationPreset = r.duration || 'normal';
- document.querySelectorAll('#duration-row .duration-btn').forEach(b=>{
+ document.querySelectorAll('#duration-row [data-preset]').forEach(b=>{
  b.classList.toggle('active', b.dataset.preset === selectedDurationPreset);
  });
  renderExGrid();
@@ -1724,24 +2137,37 @@ function renderRoutinesList(){
 try{
  const openRoutinesBtn = document.getElementById('open-routines-btn');
  const routinesBackBtn = document.getElementById('routines-back-btn');
- const saveRoutineBtn = document.getElementById('save-routine-btn');
  if(openRoutinesBtn) openRoutinesBtn.addEventListener('click', ()=>{
  renderRoutinesList();
  showScreen(routinesScreen);
  });
  if(routinesBackBtn) routinesBackBtn.addEventListener('click', ()=> showScreen(startScreen));
- if(saveRoutineBtn) saveRoutineBtn.addEventListener('click', ()=>{
- const msgEl = document.getElementById('save-routine-msg');
- const nameInput = document.getElementById('routine-name-input');
- const name = nameInput.value.trim().slice(0,14);
- if(!name){ if(msgEl) msgEl.textContent = t({ko:'루틴 이름을 입력해주십시오.', en:'Enter a routine name.', zh:'请输入方案名称。'}); return; }
- const list = loadRoutines();
- list.unshift({ name, keys: Array.from(selectedExKeys), duration: selectedDurationPreset });
- saveRoutinesList(list.slice(0, 20));
- if(msgEl) msgEl.textContent = t({ko:'저장했어요!', en:'Saved!', zh:'已保存！'});
- nameInput.value = '';
- });
 }catch(e){ console.error('routines UI setup failed:', e); }
+
+// 하단 바의 '이 조합을 내 루틴으로 저장'(설계 05).
+// 이름은 날짜로 자동으로 짓는다 — 이름 짓기를 시작 전에 시키면, 오늘 운동을
+// 하려던 사람이 갑자기 작명을 하게 된다. 바꾸고 싶으면 내 루틴 화면에서 고친다.
+function autoRoutineName(){
+ const d = new Date();
+ const day = t({
+  ko: (d.getMonth()+1) + '월 ' + d.getDate() + '일',
+  en: d.toLocaleDateString('en-US', { month:'short', day:'numeric' }),
+  zh: (d.getMonth()+1) + '月' + d.getDate() + '日'});
+ const first = EXERCISES.find(e=> selectedExKeys.has(e.key));
+ return (first ? t(first.label) + ' ' : '') + day;
+}
+function saveCurrentRoutine(){
+ const keys = Array.from(selectedExKeys);
+ if(!keys.length) return false;
+ const list = loadRoutines();
+ // 같은 구성이 이미 있으면 또 쌓지 않는다. 매번 저장을 켜 둔 사람에게는
+ // 똑같은 루틴 스무 개가 남는다.
+ const sig = keys.slice().sort().join(',') + '|' + selectedDurationPreset;
+ if(list.some(r => (r.keys||[]).slice().sort().join(',') + '|' + (r.duration||'normal') === sig)) return false;
+ list.unshift({ name: autoRoutineName(), keys, duration: selectedDurationPreset });
+ saveRoutinesList(list.slice(0, 20));
+ return true;
+}
 
 // ---------- Load a routine shared via URL (?routine=...) ----------
 try{
@@ -1750,11 +2176,11 @@ try{
  if(sharedRoutine){
  const decoded = decodeRoutine(sharedRoutine);
  if(decoded && Array.isArray(decoded.keys) && decoded.keys.length){
- selectedExKeys = new Set(decoded.keys);
+ selectedExKeys = pickSet(decoded.keys);
  selectedDurationPreset = decoded.duration || 'normal';
  renderExGrid();
  renderGroupRow();
- document.querySelectorAll('#duration-row .duration-btn').forEach(b=>{
+ document.querySelectorAll('#duration-row [data-preset]').forEach(b=>{
  b.classList.toggle('active', b.dataset.preset === selectedDurationPreset);
  });
  showScreen(setupScreen);
@@ -1773,19 +2199,19 @@ try{
  Sound.unlock();
  showScreen(setupScreen);
  try{ syncPlayBtn(); }catch(e){}
+ try{ revealDurationCard(); }catch(e){}
  });
  if(manualBackBtn) manualBackBtn.addEventListener('click', ()=> showScreen(startScreen));
 }catch(e){ console.error('manual select buttons failed:', e); }
 
 try{
- document.querySelectorAll('#duration-row .duration-btn').forEach(btn=>{
+ document.querySelectorAll('#duration-row [data-preset]').forEach(btn=>{
  btn.addEventListener('click', ()=>{
- document.querySelectorAll('#duration-row .duration-btn').forEach(b=> b.classList.toggle('active', b === btn));
+ document.querySelectorAll('#duration-row [data-preset]').forEach(b=> b.classList.toggle('active', b === btn));
  selectedDurationPreset = btn.dataset.preset;
  const customToggle = document.getElementById('custom-duration-toggle');
- const customInput = document.getElementById('custom-duration-input');
  if(customToggle){ customToggle.checked = false; }
- if(customInput){ customInput.style.display = 'none'; }
+ try{ updateStartNote(); }catch(e){}
  });
  });
 }catch(e){ console.error('duration preset buttons failed:', e); }
@@ -1797,33 +2223,35 @@ try{
  customToggle.addEventListener('change', ()=>{
  if(customToggle.checked){
  selectedDurationPreset = 'custom';
- customInput.style.display = 'inline-block';
- document.querySelectorAll('#duration-row .duration-btn').forEach(b=> b.classList.remove('active'));
+ document.querySelectorAll('#duration-row [data-preset]').forEach(b=> b.classList.remove('active'));
  } else {
  selectedDurationPreset = 'normal';
- customInput.style.display = 'none';
- document.querySelectorAll('#duration-row .duration-btn').forEach(b=> b.classList.toggle('active', b.dataset.preset === 'normal'));
+ document.querySelectorAll('#duration-row [data-preset]').forEach(b=> b.classList.toggle('active', b.dataset.preset === 'normal'));
  }
+ try{ updateStartNote(); }catch(e){}
  });
  customInput.addEventListener('input', ()=>{
  markRange(customInput, LIMITS.setSec, t({
  ko: LIMITS.setSec.min + '~' + LIMITS.setSec.max + '초까지 넣을 수 있습니다',
  en: 'Enter ' + LIMITS.setSec.min + '-' + LIMITS.setSec.max + ' seconds',
  zh: '可输入' + LIMITS.setSec.min + '~' + LIMITS.setSec.max + '秒'}));
+ // 세트 수 쪽에는 있고 여기에는 없던 줄이다 — 시간을 직접 넣으면
+ // 요약 카드와 홈의 한 줄이 옛 값(프리셋)에 머물러 있었다.
+ try{ updateStartNote(); }catch(e){}
  });
  }
 }catch(e){ console.error('custom duration toggle failed:', e); }
 
 try{
- document.querySelectorAll('#setcount-row .duration-btn').forEach(btn=>{
+ document.querySelectorAll('#setcount-row [data-count]').forEach(btn=>{
  btn.addEventListener('click', ()=>{
- document.querySelectorAll('#setcount-row .duration-btn').forEach(b=> b.classList.toggle('active', b === btn));
+ document.querySelectorAll('#setcount-row [data-count]').forEach(b=> b.classList.toggle('active', b === btn));
  selectedTotalSets = parseInt(btn.dataset.count, 10) || 8;
  updateSetNote();
+ try{ updateStartNote(); }catch(e){}
  const customToggle = document.getElementById('custom-setcount-toggle');
  const customInput = document.getElementById('custom-setcount-input');
  if(customToggle){ customToggle.checked = false; }
- if(customInput){ customInput.style.display = 'none'; }
  revealDurationCard();
  });
  });
@@ -1835,15 +2263,14 @@ try{
  if(customSetToggle && customSetInput){
  customSetToggle.addEventListener('change', ()=>{
  if(customSetToggle.checked){
- customSetInput.style.display = 'inline-block';
- document.querySelectorAll('#setcount-row .duration-btn').forEach(b=> b.classList.remove('active'));
+ document.querySelectorAll('#setcount-row [data-count]').forEach(b=> b.classList.remove('active'));
  selectedTotalSets = clamp(customSetInput.value, LIMITS.setCount, 8);
  } else {
- customSetInput.style.display = 'none';
  selectedTotalSets = 8;
- document.querySelectorAll('#setcount-row .duration-btn').forEach(b=> b.classList.toggle('active', b.dataset.count === '8'));
+ document.querySelectorAll('#setcount-row [data-count]').forEach(b=> b.classList.toggle('active', b.dataset.count === '8'));
  }
  updateSetNote();
+ try{ updateStartNote(); }catch(e){}
  revealDurationCard();
  });
  customSetInput.addEventListener('input', ()=>{
@@ -1853,9 +2280,67 @@ try{
  en: 'Enter ' + LIMITS.setCount.min + '-' + LIMITS.setCount.max + ' sets',
  zh: '可输入' + LIMITS.setCount.min + '~' + LIMITS.setCount.max + '组'}));
  updateSetNote();
+ try{ updateStartNote(); }catch(e){}
  });
  }
 }catch(e){ console.error('custom set count failed:', e); }
+
+// ---------- 직접 입력 시트 (설계 05) ----------
+// 숫자칸을 화면에 늘어놓는 대신 −/+ 두 버튼으로 만진다. 폰에서 숫자 키보드가
+// 올라오면 화면 절반이 가려지는데, 세트 수는 한두 번 눌러 맞추는 값이라
+// 키보드를 부를 일이 아니다. 범위 밖으로는 아예 못 가므로 오류 상태도 없다.
+try{
+ const panel = document.getElementById('stepper-panel');
+ const valEl = document.getElementById('stepper-val');
+ const rangeEl = document.getElementById('stepper-range');
+ let bound = null; // { input, toggle, range, unit }
+
+ const FIELDS = {
+ sets: { input:'custom-setcount-input', toggle:'custom-setcount-toggle',
+         range: LIMITS.setCount, title: STATIC_UI.customSetsTitle, unit: STATIC_UI.setsUnit },
+ secs: { input:'custom-duration-input', toggle:'custom-duration-toggle',
+         range: LIMITS.setSec, title: STATIC_UI.customSecsTitle, unit: STATIC_UI.secUnit },
+ };
+
+ function paintStepper(){
+ if(!bound || !valEl) return;
+ valEl.textContent = bound.input.value;
+ if(rangeEl) rangeEl.textContent = t(STATIC_UI.betweenRange)
+  .replace('%s', bound.range.min).replace('%s', bound.range.max) + ' ' + t(bound.unit);
+ }
+
+ function nudge(delta){
+ if(!bound) return;
+ const now = clamp(bound.input.value, bound.range, bound.range.min);
+ bound.input.value = Math.max(bound.range.min, Math.min(bound.range.max, now + delta));
+ // 값을 쥔 것은 여전히 저 input 이다. 이벤트를 흘려보내면 기존 계산과
+ // 요약 카드가 알아서 따라온다 — 여기서 다시 계산하면 두 벌이 된다.
+ bound.input.dispatchEvent(new Event('input', { bubbles: true }));
+ paintStepper();
+ }
+
+ function openStepper(kind, from){
+ const f = FIELDS[kind];
+ const input = document.getElementById(f.input);
+ const toggle = document.getElementById(f.toggle);
+ if(!panel || !input || !toggle) return;
+ bound = { input, toggle, range: f.range, unit: f.unit };
+ // 칩을 누르는 것이 곧 '직접 입력을 켠다' 이다. 기존 change 핸들러가
+ // 프리셋 칩의 켜짐을 끄고 선택 상태를 custom 으로 옮긴다.
+ if(!toggle.checked){ toggle.checked = true; toggle.dispatchEvent(new Event('change', { bubbles: true })); }
+ paintStepper();
+ openSheet(panel, { title: t(f.title), from });
+ }
+
+ document.getElementById('stepper-down')?.addEventListener('click', ()=> nudge(-1));
+ document.getElementById('stepper-up')?.addEventListener('click', ()=> nudge(1));
+ document.getElementById('stepper-apply')?.addEventListener('click', ()=> closeSheet());
+
+ const setsBtn = document.getElementById('custom-setcount-btn');
+ const secsBtn = document.getElementById('custom-duration-btn');
+ if(setsBtn) setsBtn.addEventListener('click', ()=> openStepper('sets', setsBtn));
+ if(secsBtn) secsBtn.addEventListener('click', ()=> openStepper('secs', secsBtn));
+}catch(e){ console.error('stepper sheet failed:', e); }
 
 // 더보기에서도 설정으로 갈 수 있다 — FR-11 로 가이드가 여기로 모였다
 try{
@@ -1883,6 +2368,12 @@ playBtn.addEventListener('click', ()=>{
  if(nick){ myNickname = nick; saveNickname(nick); }
  saveWeightKg(currentWeightKg());
  saveSetupPrefs();
+ // 체크를 켜 두었으면 여기서 남긴다. 저장 버튼을 따로 누르게 하면
+ // 켜 놓고도 안 눌러서 안 저장되는 일이 생긴다.
+ try{
+ const saveToggle = document.getElementById('save-routine-toggle');
+ if(saveToggle && saveToggle.checked && saveCurrentRoutine()) toast(t(STATIC_UI.routineSaved));
+ }catch(e){ console.error('routine save failed:', e); }
  buildMissions();
  showWodPreview(()=>{
  if(warmupToggle && warmupToggle.checked){
@@ -1937,35 +2428,52 @@ function syncPauseClipBtn(){
 let previewTimer = null;
 let previewNext = null;
 
+// 자동 진행은 없앴다(설계 06). '이 순서로 한다' 를 읽으라고 만든 화면인데
+// 3.2초 뒤 알아서 넘어가면 읽을 시간을 안 주는 것이다. 시작은 사람이 정한다.
+// previewTimer 는 남겨 둔다 — 준비운동 영상 쪽이 아직 이 자리를 쓴다.
 function startPreviewTimer(nextFn){
  previewNext = nextFn;
  clearTimeout(previewTimer);
- previewTimer = setTimeout(()=>{ previewTimer = null; if(previewNext) previewNext(); }, 3200);
+ previewTimer = null;
 }
 
-// 영상을 여는 동안 멈춘다. 다시 흐르게 하는 것은 사람이 '시작' 을 누를 때다 —
-// 영상을 닫자마자 몇 초 뒤 자동으로 시작하면, 자세를 확인하려던 사람이
-// 준비도 안 된 채로 운동에 들어간다.
+// 영상을 여는 동안 멈춘다. 자동 진행이 없어진 지금은 사실상 아무 일도 안 하지만,
+// 부르는 자리(미리보기 행 클릭)를 지워 두면 나중에 자동 진행을 되살릴 때
+// 그 자리를 다시 찾아야 한다.
 function holdPreview(){
  clearTimeout(previewTimer);
  previewTimer = null;
- const btn = document.getElementById('preview-start-btn');
- if(btn) btn.hidden = false;
 }
 
-// 미리보기의 '지금 시작'. 영상을 보느라 자동 진행이 멈춘 뒤 사람이 직접 누른다.
+// 미리보기에서 뒤로.
+try{
+ const previewBackBtn = document.getElementById('preview-back-btn');
+ if(previewBackBtn) previewBackBtn.addEventListener('click', ()=>{
+ holdPreview();
+ previewNext = null;
+ showScreen(setupScreen);
+ });
+}catch(e){ console.error('preview back button failed:', e); }
+
+// 미리보기의 '시작'.
 try{
  const previewStartBtn = document.getElementById('preview-start-btn');
  if(previewStartBtn) previewStartBtn.addEventListener('click', ()=>{
- previewStartBtn.hidden = true;
  if(previewNext) previewNext();
  });
 }catch(e){ console.error('preview start button failed:', e); }
 
 function showWodPreview(nextFn){
  try{
- const startBtn = document.getElementById('preview-start-btn');
- if(startBtn) startBtn.hidden = true;   // 들어올 때마다 초기 상태로
+ // 머리 오른쪽의 예상 소요, 그리고 준비운동이 먼저 붙는지.
+ const totalEl = document.getElementById('preview-total');
+ if(totalEl){
+ const secs = missions.reduce((s, m)=> s + m.duration, 0);
+ totalEl.textContent = t(STATIC_UI.aboutMinutes).replace('%s', Math.max(1, Math.round(secs / 60)));
+ }
+ const warmCard = document.getElementById('preview-warm');
+ if(warmCard) warmCard.style.display = (warmupToggle && warmupToggle.checked) ? '' : 'none';
+
  const list = document.getElementById('wod-preview-list');
  if(list){
  list.innerHTML = '';
@@ -1974,11 +2482,21 @@ function showWodPreview(nextFn){
  // 영상이 있는 동작만 누를 수 있게 한다. 없는데 눌리면 아무 일도 안 일어나서
  // 고장으로 읽힌다.
  const item = document.createElement(clip ? 'button' : 'div');
- item.className = 'wod-preview-item' + (m.isBoss ? ' boss' : '') + (clip ? ' has-clip' : '');
+ item.className = 'wod-preview-item card' + (m.isBoss ? ' boss' : '') + (clip ? ' has-clip' : '');
  item.style.animationDelay = (i * 0.04) + 's';
+
+ const photo = (PHOTO_SEQUENCES[m.ex.key] || [])[0];
+ const hold = m.ex.type === 'hold';
  item.innerHTML =
  '<span class="wpi-num">' + (i+1) + '</span>' +
- '<span class="wpi-name">' + t(m.ex.label) + (m.isBoss ? t({ko:' (보스)', en:' (BOSS)', zh:'（BOSS）'}) : '') + '</span>' +
+ (photo ? '<span class="wpi-shot"><img src="' + photoUrl(photo) + '" alt="" loading="lazy" decoding="async"></span>'
+        : '<span class="wpi-shot"></span>') +
+ '<span class="wpi-main">' +
+   '<span class="wpi-name">' + t(m.ex.label) + (m.isBoss ? t({ko:' (보스)', en:' (BOSS)', zh:'（BOSS）'}) : '') + '</span>' +
+   '<span class="wpi-meta dim">' + m.duration + t(STATIC_UI.secUnit) +
+     ' · ' + t(m.ex.cue) + '</span>' +
+ '</span>' +
+ '<span class="wpi-tag' + (hold ? ' hold' : '') + '">' + t(hold ? STATIC_UI.kindHold : STATIC_UI.kindReps) + '</span>' +
  (clip ? '<span class="wpi-play" aria-hidden="true"></span>' : '');
  if(clip){
  item.type = 'button';
@@ -2119,18 +2637,33 @@ function vibrate(pattern){
  if(!vibrationEnabled) return;
  try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
 }
+// 카운트다운이 도는 동안의 타이머. 취소가 이걸 꺼야 한다 —
+// 안 끄면 화면만 돌아가고 3초 뒤에 운동이 혼자 시작된다.
+let countdownIv = null;
+function stopCountdown(){
+ clearInterval(countdownIv);
+ countdownIv = null;
+}
 function startCountdown(){
  wodStartTimestamp = Date.now();
  showScreen(countdownScreen);
+ // 무엇을 준비해야 하는지 이름을 얹는다. 숫자만 있으면 3초 동안
+ // 무엇을 할지 모른 채로 서 있게 된다.
+ const nextEl = document.getElementById('countdown-next');
+ if(nextEl){
+ const first = missions[0];
+ nextEl.textContent = first ? t(STATIC_UI.firstMove) + ' · ' + t(first.ex.label) : '';
+ }
+ stopCountdown();
  let n = 3;
  countdownNum.textContent = n;
  restartAnim(countdownNum);
  Sound.countBeep(3);
  vibrate(40);
- const iv = setInterval(()=>{
+ countdownIv = setInterval(()=>{
  n--;
  if(n <= 0){
- clearInterval(iv);
+ stopCountdown();
  Sound.countBeep(0);
  vibrate([0,60,40,90]);
  startGame();
@@ -2142,10 +2675,25 @@ function startCountdown(){
  vibrate(40);
  }, 650);
 }
-function restartAnim(el){
+try{
+ const cdCancel = document.getElementById('countdown-cancel-btn');
+ if(cdCancel) cdCancel.addEventListener('click', ()=>{
+ stopCountdown();
+ showScreen(wodPreviewScreen);
+ // 미리보기로 돌아오면 자동 진행이 다시 돌지 않게 '지금 시작' 을 띄운다.
+ holdPreview();
+ });
+}catch(e){ console.error('countdown cancel failed:', e); }
+// 애니메이션을 다시 트는 법. 이름을 지웠다가 되붙이면 브라우저가 처음부터 튼다.
+//
+// 예전에는 여기서 'pop' 을 걸었는데 그 키프레임은 translate(-50%,-50%) 를
+// 품고 있다 — 화면 한가운데에 절대배치된 CLEAR 배너용이다. 흐름 안에 있는
+// 카운트다운 숫자에 걸면 자기 크기의 절반만큼 왼쪽 위로 밀려서, 위에 있는
+// 동작 이름을 덮는다. 숫자에 글자 크기가 없던 동안에는 안 보였을 뿐이다.
+function restartAnim(el, name = 'countPop'){
  el.style.animation = 'none';
  void el.offsetWidth;
- el.style.animation = 'pop 0.85s ease';
+ el.style.animation = name + ' 0.4s var(--ease-pop)';
 }
 
 // ---------- GAME ----------
@@ -2465,6 +3013,33 @@ function finishGame(){
  if(timeLabel) timeLabel.textContent = t({ko:'운동시간', en:'Time', zh:'训练时长'});
  if(calLabel) calLabel.textContent = t({ko:'칼로리 (추정)', en:'Calories (est.)', zh:'消耗（估算）'});
 
+ // 축하 줄의 날짜. '완료' 만 있으면 나중에 기록에서 다시 볼 때
+ // 이게 언제 것인지 알 수 없다.
+ // 이 화면의 큰 숫자. 0에서 값까지 세어 올린다 — 도착한 숫자만 툭 나오면
+ // '얼마나 올랐나' 가 안 읽힌다. aria-label 로 최종값을 먼저 알려 두어
+ // 스크린리더가 올라가는 숫자를 스무 번 읽지 않게 한다.
+ const scoreEl = document.getElementById('result-score');
+ if(scoreEl){
+ scoreEl.setAttribute('aria-label', t(STATIC_UI.scorePoints).replace('%s', score));
+ const target = score;
+ const t0 = performance.now();
+ const tick = (now)=>{
+  const p = Math.min(1, (now - t0) / 400);
+  scoreEl.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+  if(p < 1) requestAnimationFrame(tick);
+ };
+ requestAnimationFrame(tick);
+ }
+
+ const checkEl = document.querySelector('.result-check');
+ if(checkEl){
+ const d = new Date();
+ checkEl.textContent = t(STATIC_UI.doneLabel) + ' · ' + t({
+  ko: (d.getMonth()+1) + '월 ' + d.getDate() + '일',
+  en: d.toLocaleDateString('en-US', { month:'short', day:'numeric' }),
+  zh: (d.getMonth()+1) + '月' + d.getDate() + '日'});
+ }
+
  showScreen(resultScreen);
  fireConfetti();
  try{ checkAndMaybeShowAd(); }catch(e){}
@@ -2605,14 +3180,21 @@ function finishGame(){
  if(myProfile.bestStreakEver > prevBest) brokenRecords.push(t({ko:'연속 기록', en:'streak', zh:'连续记录'}));
  if(myProfile.bestCaloriesEver > prevBestCalories && prevBestCalories > 0) brokenRecords.push(t({ko:'칼로리', en:'calories', zh:'消耗'}));
  if(myProfile.bestScoreEver > prevBestScore && prevBestScore > 0) brokenRecords.push(t({ko:'점수', en:'score', zh:'得分'}));
+ // PR 은 이 화면에서 유일하게 앰버로 칠하는 것이다(설계 12) — 자기 기록을
+ // 깬 날에만 나오므로 강조가 하나뿐이라는 규칙을 어기지 않는다.
+ // 알약 한 줄이 아니라 트로피 + 두 줄짜리 행이다: 무엇을 깼는지 아래에 적는다.
  const prBadgeEl = document.getElementById('pr-badge');
  if(prBadgeEl){
  if(brokenRecords.length){
- prBadgeEl.style.display = 'inline-flex';
- prBadgeEl.textContent = t({
- ko:'자기 최고 기록 경신! (' + brokenRecords.join(', ') + ')',
- en:'New personal best! (' + brokenRecords.join(', ') + ')',
- zh:'刷新个人最好成绩！（' + brokenRecords.join('、') + '）'});
+ prBadgeEl.style.display = 'flex';
+ prBadgeEl.innerHTML =
+  '<span class="pr-ic">' + ICON.trophy + '</span>' +
+  '<span class="row-main">' +
+   '<span class="pr-t"></span>' +
+   '<span class="pr-d"></span>' +
+  '</span>';
+ prBadgeEl.querySelector('.pr-t').textContent = t(STATIC_UI.prTitle);
+ prBadgeEl.querySelector('.pr-d').textContent = brokenRecords.join(' · ');
  } else {
  prBadgeEl.style.display = 'none';
  }
@@ -2792,6 +3374,30 @@ async function shareResult(){
 
 shareBtn.addEventListener('click', shareResult);
 
+// 도전장(설계 12). 공유가 '내 결과를 보여 주는 것' 이라면, 이건 '같은 루틴을
+// 그대로 넘기는 것' 이다 — 링크에 방금 한 구성이 실려 가서 받은 사람은
+// 앱을 열자마자 같은 운동을 하게 된다.
+try{
+ const challengeBtn = document.getElementById('challenge-btn');
+ if(challengeBtn) challengeBtn.addEventListener('click', async ()=>{
+ const keys = missions.filter(m=>!m.isBoss).map(m=>m.ex.key);
+ const encoded = encodeRoutine({ name: autoRoutineName(), keys: Array.from(new Set(keys)), duration: selectedDurationPreset });
+ if(!encoded) return;
+ const url = location.href.split('#')[0].split('?')[0] + '?routine=' + encoded;
+ const text = t({
+  ko: '방금 ' + score + '점 했어. 같은 걸로 붙어볼래?\n',
+  en: 'Just scored ' + score + '. Same routine — beat it?\n',
+  zh: '我刚拿了' + score + '分，同样的组合，来比比？\n'}) + url;
+ try{
+  if(navigator.share){ await navigator.share({ text, url }); return; }
+ }catch(e){ /* 사용자가 취소했다. 아래 복사로 넘어간다 */ }
+ try{
+  await navigator.clipboard.writeText(text);
+  toast(t(STATIC_UI.linkCopied));
+ }catch(e){ console.error('challenge copy failed:', e); }
+ });
+}catch(e){ console.error('challenge button failed:', e); }
+
 // iOS/mobile often suspends the AudioContext when the tab loses focus
 // (screen lock, app switch, etc.) and never auto-resumes it — re-arm on return.
 document.addEventListener('visibilitychange', ()=>{
@@ -2927,12 +3533,72 @@ try{ loadProfile(); }catch(e){ console.error('loadProfile failed:', e); }
 // 권한은 토글을 켤 때만 묻는다 — 부팅하자마자 물으면 대부분 거절하고,
 // 브라우저가 그 거절을 기억해서 나중에 켜고 싶어도 못 켜게 된다.
 try{
+ // ---- 설정 화면의 나머지 (설계 17) ----
+ // 프로필 카드 · 기본 세트 수 · 언어 · 테마 · 내보내기 · 삭제.
+ // 값을 보여 주는 줄은 전부 syncSettings 한 곳에서 채운다 — 여러 자리에서
+ // 나눠 채우면 언어를 바꿨을 때 한둘이 옛 값으로 남는다.
+ window.syncSettings = function syncSettings(){
+ const nameEl = document.getElementById('profile-name');
+ if(nameEl) nameEl.textContent = myNickname || 'Q-fitter';
+ const avEl = document.getElementById('profile-avatar');
+ if(avEl) avEl.textContent = (myNickname || 'Q').trim().charAt(0).toUpperCase() || 'Q';
+ const subEl = document.getElementById('profile-sub');
+ if(subEl) subEl.textContent = t(isCloudEnabled() ? STATIC_UI.syncBlurb : STATIC_UI.localOnlyNote);
+
+ const setsVal = document.getElementById('settings-sets-val');
+ if(setsVal) setsVal.textContent = selectedTotalSets;
+ const warmRow = document.getElementById('settings-warmup-toggle');
+ if(warmRow && warmupToggle) warmRow.checked = warmupToggle.checked;
+ const langVal = document.getElementById('settings-lang-val');
+ if(langVal) langVal.textContent = LANG_LABEL[LANG];
+ const themeVal = document.getElementById('settings-theme-val');
+ if(themeVal) themeVal.textContent = t(THEME_LABEL[currentTheme()]);
+ };
+ syncSettings();
+ document.addEventListener('qfit:lang', ()=>{ try{ syncSettings(); }catch(e){} });
+
+ // 로그인 문은 클라우드가 잠겨 있으면 같이 닫는다(NOTES.md 참고).
+ const settingsLoginBtn = document.getElementById('settings-login-btn');
+ if(settingsLoginBtn){
+ if(!isCloudEnabled()) settingsLoginBtn.hidden = true;
+ else settingsLoginBtn.addEventListener('click', ()=> showScreen(accountScreen));
+ }
+
+ // 기본 세트 수는 설정 화면에서 스테퍼를 또 만들지 않는다 —
+ // 그 값을 정하는 자리는 '오늘의 설정' 이고, 여기서는 거기로 보낸다.
+ document.getElementById('settings-default-sets')?.addEventListener('click', ()=>{
+ showScreen(setupScreen);
+ setTimeout(()=> document.getElementById('custom-setcount-btn')?.click(), 80);
+ });
+ document.getElementById('settings-warmup-toggle')?.addEventListener('change', (e)=>{
+ if(warmupToggle){ warmupToggle.checked = e.target.checked; warmupToggle.dispatchEvent(new Event('change', { bubbles:true })); }
+ });
+ document.getElementById('settings-lang-btn')?.addEventListener('click', ()=>{
+ setLang(nextLang());
+ syncSettings();
+ });
+ document.getElementById('settings-theme-btn')?.addEventListener('click', ()=>{
+ cycleTheme();
+ syncSettings();
+ });
+ document.getElementById('settings-export-btn')?.addEventListener('click', exportHistoryCsv);
+ document.getElementById('settings-wipe-btn')?.addEventListener('click', wipeAllData);
+
+ // 화면 맨 아래 판 번호. 무언가 이상할 때 "어느 판을 보고 있나" 를
+ // 물어볼 수 있는 유일한 자리다.
+ const verEl = document.getElementById('settings-version');
+ // package.json 의 version 을 vite 가 심는다(vite.config.js 의 define).
+ // 손으로 적으면 배포마다 고쳐야 하고, 한 번 잊으면 그때부터 거짓말을 한다.
+ if(verEl) verEl.textContent = 'Q-fit ' + __APP_VERSION__;
+
  const remToggle = document.getElementById('reminder-toggle');
  const remNote = document.getElementById('reminder-note');
  if(remToggle){
  remToggle.checked = reminder.isEnabled() && reminder.canNotify();
  remToggle.addEventListener('change', async ()=>{
- if(!remToggle.checked){ reminder.disable(); if(remNote) remNote.textContent = t(STATIC_UI.reminderNote); return; }
+ // 설명은 이제 줄 안에 붙어 있다. 이 자리는 '켤 수 없었다' 는 말만 한다 —
+ // 잘될 때도 한 줄이 남아 있으면 그게 오류인지 안내인지 구별이 안 된다.
+ if(!remToggle.checked){ reminder.disable(); if(remNote) remNote.textContent = ''; return; }
  if(typeof Notification === 'undefined'){
  remToggle.checked = false;
  if(remNote) remNote.textContent = t(STATIC_UI.reminderUnsupported);
@@ -2940,7 +3606,7 @@ try{
  }
  const ok = await reminder.enable();
  remToggle.checked = ok;
- if(remNote) remNote.textContent = ok ? t(STATIC_UI.reminderNote) : t(STATIC_UI.reminderDenied);
+ if(remNote) remNote.textContent = ok ? '' : t(STATIC_UI.reminderDenied);
  });
  }
  // 앱을 열었을 때 알릴 때가 됐으면 알린다. 닫혀 있는 사이는 웹푸시가

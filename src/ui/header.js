@@ -14,13 +14,20 @@
 
 // 화면 id → [사전 키, 원래 있던 뒤로 버튼]
 const SUB_SCREENS = {
-  'setup-screen': ['todayWod', '#setup-back-btn'],
+  // 'todayWod' 는 미리보기 화면의 이름이다. 두 화면에 같은 제목을 달면
+  // 설정에서 미리보기로 넘어갔을 때 화면이 바뀐 것을 알 수 없다.
+  'setup-screen': ['setupTitle', '#setup-back-btn'],
   'manual-select-screen': ['modeManual', '#manual-back-btn'],
-  'ai-quiz-screen': ['aiEyebrow', '#ai-quiz-back-btn'],
+  // 퀴즈만 제목이 없다(설계 04). 질문 자체가 화면의 큰 제목이라
+  // 머리에도 이름을 달면 제목이 둘이 된다. 머리에는 진행 점과 건너뛰기만.
+  'ai-quiz-screen': [null, '#ai-quiz-back-btn'],
   'routines-screen': ['routinesTitle', '#routines-back-btn'],
   'account-screen': ['accountEyebrow', '#account-back-btn'],
   'settings-screen': ['settingsBtn', '#settings-back-btn'],
   'video-gallery-screen': ['movesBtn', '#video-gallery-back-btn'],
+  // 미리보기부터 탭바를 감춘다. 그러면 뒤로 버튼이 유일한 탈출구라
+  // 이 화면에도 머리가 반드시 있어야 한다(설계의 주석 핀 4번).
+  'wod-preview-screen': ['todayWod', '#preview-back-btn'],
 };
 
 let dict = null;
@@ -43,13 +50,20 @@ export function initHeaders({ STATIC_UI, t, ICON }) {
     hd.className = 'hd';
     hd.innerHTML =
       `<button class="hd-back" type="button" aria-label="뒤로">${ICON.back}</button>` +
-      `<h2 class="hd-title" data-hd-key="${key}"></h2>`;
+      (key ? `<h2 class="hd-title" data-hd-key="${key}"></h2>` : '');
 
     hd.querySelector('.hd-back').addEventListener('click', () => {
       const back = document.querySelector(backSel);
       if (back) back.click();
       else history.back();
     });
+
+    // 오른쪽 액션 한 자리. 설계의 머리 규칙은 '뒤로 · 제목 · 오른쪽 하나' 이고,
+    // 그 하나가 무엇인지는 화면마다 다르다(고른 개수, 예상 소요, 전체 개수).
+    // 화면이 자기 마크업에 data-hd-aside 로 적어 두면 여기서 머리로 옮긴다 —
+    // 종류마다 이 파일에 분기를 만들면 화면을 하나 늘릴 때마다 여기가 늘어난다.
+    const aside = screen.querySelector(':scope > [data-hd-aside]');
+    if (aside) hd.appendChild(aside);
 
     screen.prepend(hd);
 
@@ -69,11 +83,27 @@ export function initHeaders({ STATIC_UI, t, ICON }) {
     // 눈꼬리(eyebrow)도 같이 접는다. 제목 없이 그것만 남으면 무엇의
     // 머리말인지 알 수 없는 한 줄이 된다.
     const hero = screen.querySelector(':scope > .lb-title');
-    if (hero) {
-      const eyebrow = hero.previousElementSibling;
-      if (eyebrow?.classList.contains('eyebrow')) eyebrow.hidden = true;
-      hero.hidden = true;
-    }
+    if (hero) hero.hidden = true;
+    // 눈꼬리는 제목이 있든 없든 접는다. 설정 화면처럼 제목 없이 눈꼬리만
+    // 있는 곳에서는 머리의 '설정' 바로 아래 '설정' 이 또 한 번 찍혔다.
+    const eyebrow = screen.querySelector(':scope > .eyebrow');
+    if (eyebrow) eyebrow.hidden = true;
+  }
+
+  // 탭바로 바로 닿는 화면은 큰 제목 하나로 시작한다. 눈꼬리(MY RECORDS 같은
+  // 대문자 한 줄)와 화면 맨 아래 '닫기' 를 접는다 —
+  //  · 눈꼬리는 바로 아래 제목과 같은 말을 두 번 하고, 영문 그대로 박혀 있어
+  //    언어를 바꿔도 안 바뀌었다.
+  //  · '닫기' 는 탭바가 이미 하는 일이다. 목록이 길면 스크롤을 끝까지 내려야
+  //    나가는 길이 보이는데, 그 길은 화면 아래에 늘 떠 있는 탭바다.
+  // 버튼은 지우지 않고 감춘다 — 다른 곳에서 눌러 이동하는 데 쓴다.
+  for (const id of ['records-screen', 'recovery-screen', 'more-screen']) {
+    const screen = document.getElementById(id);
+    if (!screen) continue;
+    const eyebrow = screen.querySelector(':scope > .eyebrow');
+    if (eyebrow) eyebrow.hidden = true;
+    const close = screen.querySelector(':scope > [data-i18n="lbBackBtn"], :scope > [data-i18n="closeBtn"]');
+    if (close) close.hidden = true;
   }
 
   paintTitles();

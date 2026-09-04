@@ -34,6 +34,34 @@ export const ICON = {
   chart: svg('<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/>'),
   recovery: svg('<path d="M20.8 6.6a4.9 4.9 0 0 0-7 0L12 8.4l-1.8-1.8a4.9 4.9 0 1 0-7 7l8.8 8.8 8.8-8.8a4.9 4.9 0 0 0 0-7Z"/>'),
   more: svg('<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>'),
+
+  // 홈 머리와 두 바로가기. 설계 파일의 path 를 그대로 옮겼다 —
+  // 비슷하게 다시 그리면 같은 뜻의 아이콘이 두 벌이 된다.
+  settings: svg(
+    '<circle cx="12" cy="12" r="3"/>' +
+    '<path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
+  ),
+  heart: svg('<path d="M12 21s-7-4.4-7-9.6A4.4 4.4 0 0 1 12 8a4.4 4.4 0 0 1 7 3.4C19 16.6 12 21 12 21z"/>'),
+  moves: svg('<path d="m10 8 6 4-6 4z"/><rect x="3" y="4" width="18" height="16" rx="2"/>'),
+
+  // 시작 시트의 네 갈래. 이것도 설계 파일의 path 를 그대로 옮겼다.
+  grid: svg('<path d="M4 6h7v7H4zM13 6h7v7h-7zM4 15h7v3H4zM13 15h7v3h-7z"/>'),
+  dice: svg(
+    '<rect x="3" y="3" width="18" height="18" rx="3"/>' +
+    '<circle cx="8.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/>' +
+    '<circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>' +
+    '<circle cx="15.5" cy="15.5" r="1.2" fill="currentColor" stroke="none"/>'
+  ),
+  spark: svg('<path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/>'),
+  repeat: svg('<path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/>'),
+  search: svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3"/>'),
+  chevron: svg('<path d="m9 18 6-6-6-6"/>'),
+  check: svg('<path d="m4 12 6 6L20 6"/>'),
+  minus: svg('<path d="M5 12h14"/>'),
+  plus: svg('<path d="M12 5v14M5 12h14"/>'),
+  trophy: svg('<path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0z"/>'),
+  send: svg('<path d="M3 11l18-8-8 18-2-8z"/>'),
+  share: svg('<path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 3v12M8 7l4-4 4 4"/>'),
 };
 
 // 마크업에 data-icon="close" 라고 적어 두면 부팅할 때 채워 넣는다.

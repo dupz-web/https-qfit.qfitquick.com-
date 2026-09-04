@@ -8,29 +8,29 @@
 // 강조해야 하고, 렌더는 innerHTML 로 넣는다.
 
 export const RECOVERY_CARDS = [
- { title:{ko:'운동 직후 영양 섭취', en:'Eat right after training', zh:'训练后的营养补充'},
+ { tag:{ko:'영양', en:'Food', zh:'营养'}, title:{ko:'운동 직후 영양 섭취', en:'Eat right after training', zh:'训练后的营养补充'},
   items:[
    {ko:'운동 종료 후 <b>30~60분</b> 이내가 회복의 골든타임', en:'The <b>30–60 minutes</b> after you finish is the recovery window', zh:'结束后 <b>30~60分钟</b> 是恢复的黄金时间'},
    {ko:'탄수화물 + 단백질 조합 추천 (예: 바나나+삶은 계란, 그릭요거트, 닭가슴살+과일)', en:'Pair carbs with protein (banana + boiled egg, Greek yogurt, chicken + fruit)', zh:'碳水搭配蛋白质（香蕉+水煮蛋、希腊酸奶、鸡胸肉+水果）'},
    {ko:'공복 상태가 길었다면 가벼운 간식이라도 챙기기', en:'If you trained on an empty stomach, at least have a light snack', zh:'如果空腹时间较长，至少吃点轻食'},
   ] },
- { title:{ko:'스트레칭 & 마사지', en:'Stretching & massage', zh:'拉伸与按摩'},
+ { tag:{ko:'스트레칭', en:'Stretch', zh:'拉伸'}, title:{ko:'스트레칭 & 마사지', en:'Stretching & massage', zh:'拉伸与按摩'},
   items:[
    {ko:'운동 직후 <b>5~10분</b> 가볍게 정적 스트레칭 (허벅지·종아리·둔근 위주)', en:'<b>5–10 minutes</b> of easy static stretching right after (thighs, calves, glutes)', zh:'训练后 <b>5~10分钟</b> 轻度静态拉伸（大腿、小腿、臀部为主）'},
    {ko:'폼롤러나 마사지볼로 뭉친 부위를 <b>천천히</b> 눌러가며 풀어주기', en:'Roll out tight spots <b>slowly</b> with a foam roller or massage ball', zh:'用泡沫轴或按摩球 <b>慢慢</b> 按压紧张的部位'},
    {ko:'급하게 늘리지 말고 숨을 내쉬며 <b>통증 없는</b> 선까지만', en:'Don\'t yank — breathe out and go only to the point of <b>no pain</b>', zh:'不要急着拉，边呼气边做，只到 <b>不痛</b> 为止'},
   ] },
- { title:{ko:'수분 보충', en:'Rehydrate', zh:'补充水分'},
+ { tag:{ko:'수분', en:'Water', zh:'水分'}, title:{ko:'수분 보충', en:'Rehydrate', zh:'补充水分'},
   items:[
    {ko:'운동 중 흘린 땀만큼 <b>수분을 충분히</b> 보충하기', en:'Replace <b>as much fluid</b> as you sweated out', zh:'流了多少汗就 <b>补多少水</b>'},
    {ko:'땀을 많이 흘렸다면 물보다 <b>이온음료</b>를 권장해요 — 당분과 나트륨이 들어있어서 땀으로 빠져나간 전해질을 더 효과적으로 채워줘요', en:'If you sweated a lot, a <b>sports drink</b> beats plain water — the sugar and sodium replace the electrolytes you lost more effectively', zh:'出汗多时，<b>运动饮料</b> 比白水更合适 — 其中的糖分和钠能更有效地补回随汗流失的电解质'},
   ] },
- { title:{ko:'냉·온 찜질', en:'Ice & heat', zh:'冷敷与热敷'},
+ { tag:{ko:'찜질', en:'Ice/heat', zh:'冷热'}, title:{ko:'냉·온 찜질', en:'Ice & heat', zh:'冷敷与热敷'},
   items:[
    {ko:'운동 직후 붓거나 욱신거리면 <b>냉찜질</b> 15~20분', en:'Swelling or throbbing right after? <b>Ice</b> for 15–20 minutes', zh:'训练后肿胀或抽痛，<b>冷敷</b> 15~20分钟'},
    {ko:'다음날 뻐근함(근육통)에는 <b>온찜질</b>이나 미온수 샤워가 도움', en:'Next-day soreness responds better to <b>heat</b> or a warm shower', zh:'第二天的酸痛用 <b>热敷</b> 或温水淋浴更有效'},
   ] },
- { title:{ko:'수면 & 휴식일', en:'Sleep & rest days', zh:'睡眠与休息日'},
+ { tag:{ko:'휴식', en:'Rest', zh:'休息'}, title:{ko:'수면 & 휴식일', en:'Sleep & rest days', zh:'睡眠与休息日'},
   items:[
    {ko:'근육은 운동할 때가 아니라 <b>잘 때</b> 회복됩니다 — 하루 7~8시간 수면 목표', en:'Muscle rebuilds while you <b>sleep</b>, not while you train — aim for 7–8 hours', zh:'肌肉是在 <b>睡觉时</b> 恢复的，不是训练时 — 目标每天7~8小时'},
    {ko:'같은 부위를 매일 강하게 자극하기보다 하루 정도 <b>휴식일</b>을 끼워넣기', en:'Rather than hitting the same area hard every day, slot in a <b>rest day</b>', zh:'与其每天都练同一部位，不如安排一个 <b>休息日</b>'},

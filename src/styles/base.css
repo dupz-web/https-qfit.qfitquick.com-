@@ -55,7 +55,7 @@ button {
 
 /* 키보드로 다니는 사람이 자기 위치를 알 수 있게. 예전에는 focus 스타일이 아예 없었다. */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 3px solid var(--mint);
   outline-offset: 2px;
   border-radius: var(--r-sm);
 }

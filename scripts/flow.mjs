@@ -45,11 +45,12 @@ await page.evaluate(() => {
 });
 
 await page.screenshot({ path: `${SHOT_DIR}/setup.png` });
-await step('START Q', () => page.click('#play-btn'));
+await step('미리보기', () => page.click('#play-btn'));
 
-// 미리보기 3.2초 → 카운트다운 3-2-1(650ms×3)
-await page.waitForTimeout(3600);
-await step('미리보기 대기', async () => {});
+// 미리보기는 더 이상 저절로 넘어가지 않는다(설계 06) — 사람이 시작을 누른다
+await step('▶ 시작', () => page.click('#preview-start-btn'));
+
+// 카운트다운 3-2-1(650ms×3)
 await page.waitForTimeout(2600);
 const finalScreen = await step('카운트다운 대기', async () => {});
 

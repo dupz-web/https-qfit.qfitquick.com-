@@ -5,36 +5,88 @@
  * 막대인간 애니메이션(figures.css)은 이 앱의 자산이라 그대로 쓴다.
  */
 
-/* ── WOD 미리보기 ────────────────────────────────────── */
+/* ── WOD 미리보기 (설계 06) ──────────────────────────── */
+#wod-preview-screen {
+  /* 가운데로 모으지 않는다 — 목록은 위에서부터 읽는다.
+     base.css 가 집중 화면 넷을 한꺼번에 가운데로 몰아 놨는데,
+     그러면 동작이 셋일 때와 열둘일 때 첫 줄의 자리가 달라진다. */
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: var(--s-3);
+}
+.preview-warm { padding: var(--s-3); border-color: var(--mint); }
+.preview-warm .row-ic { color: var(--mint-text); }
+.preview-note { text-align: center; }
+
 .wod-preview-list {
   display: flex;
   flex-direction: column;
   gap: var(--s-2);
   width: 100%;
-  max-width: 340px;
 }
 .wod-preview-item {
   display: flex;
   align-items: center;
   gap: var(--s-3);
-  padding: var(--s-3) var(--s-4);
-  border-radius: var(--r-md);
-  background: var(--surface);
-  border: 1px solid var(--line);
+  padding: var(--s-3);
   font-size: var(--t-md);
 }
+/* 번호는 원 안에. 사진 옆에 맨숫자로 두면 시간이나 개수로 읽힌다. */
 .wod-preview-item .wpi-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   flex: none;
-  width: 24px;
-  font-variant-numeric: tabular-nums;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  font-family: var(--font-num);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--text);
+}
+.wod-preview-item .wpi-shot {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+.wod-preview-item .wpi-shot img { width: 100%; height: 100%; object-fit: cover; }
+.wod-preview-item .wpi-main { flex: 1; min-width: 0; text-align: left; }
+.wod-preview-item .wpi-name {
+  display: block;
+  font-size: var(--t-md);
+  font-weight: 700;
+  word-break: keep-all;
+}
+.wod-preview-item .wpi-meta {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 버티는 동작만 칠한다. 반복은 기본이라 테두리만 — 둘 다 칠하면
+   태그가 정보를 주지 않고 장식이 된다. */
+.wod-preview-item .wpi-tag {
+  flex: none;
+  padding: var(--s-1) 9px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--line);
+  font-size: var(--t-xs);
+  font-weight: 700;
   color: var(--text-dim);
 }
-.wod-preview-item .wpi-icon { flex: none; }
-.wod-preview-item.boss {
-  border-color: var(--hot);
-  color: var(--hot);
-  font-weight: 700;
+.wod-preview-item .wpi-tag.hold {
+  background: var(--mint);
+  border-color: var(--mint);
+  color: var(--on-mint);
 }
+.wod-preview-item .wpi-icon { flex: none; }
+.wod-preview-item.boss { border-color: var(--hot); }
+.wod-preview-item.boss .wpi-name { color: var(--hot); }
 
 /* ── 준비운동 ────────────────────────────────────────── */
 .warmup-video {
@@ -45,13 +97,44 @@
 }
 .warmup-video-error { font-size: var(--t-sm); color: var(--text-dim); text-align: center; }
 
-/* ── 카운트다운 ──────────────────────────────────────── */
-.loading-figure {
-  font-size: var(--t-huge);
-  font-weight: 800;
-  line-height: 1;
-  color: var(--text);
+/* ── 카운트다운 (설계 07) ────────────────────────────
+   숫자 하나만. 위에 첫 동작 이름, 아래에 취소.
+   이 규칙은 원래 .loading-figure(막대인간 SVG)에 붙어 있었고 정작 숫자에는
+   아무 스타일이 없었다 — 글자 규칙을 SVG 에 걸어 둔 것이라 아무 일도 안 했다. */
+#countdown-screen { justify-content: space-between; align-items: stretch; }
+.cd-mid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+}
+#countdown-num {
+  font-family: var(--font-num);
+  font-size: var(--t-cd);
+  font-weight: 700;
+  line-height: 0.9;
+  /* 앰버를 글자로 쓰면 흰 바탕에서 1.25:1 이다. 큰 글자라도 3:1 은 넘겨야 한다. */
+  color: var(--accent-text);
   font-variant-numeric: tabular-nums;
+}
+.cd-cue { font-size: var(--t-lg); font-weight: 600; color: var(--text-dim); }
+.cd-foot { flex: none; padding-bottom: env(safe-area-inset-bottom); }
+
+/* 설계의 qf-cd. 흐름 안에 있는 요소라 translate 를 품지 않는다 —
+   품으면 자기 크기의 절반만큼 밀려 위 줄을 덮는다. */
+@keyframes countPop {
+  0% { transform: scale(0.55); opacity: 0; }
+  45% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+/* 움직임을 줄여 달라는 설정에서는 크기 변화를 빼고 흐림만 남긴다 */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes countPop {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 }
 
 /* ── 운동 화면 · 3단 위계 ─────────────────────────────
@@ -126,11 +209,12 @@
 
 .photo-demo-wrap {
   position: relative;
-  /* 190px 은 하한이다. 2단에 남는 세로가 있으면 사진이 가져간다 —
-     고정하면 아래가 비는데 정작 자세는 안 보인다. */
-  flex: 1 1 auto;
-  min-height: 190px;
-  max-height: 42vh;
+  /* 설계가 정한 190px. 남는 세로를 사진이 다 가져가게 두면(예전) 큐와 주의가
+     화면 밖으로 밀려나는데, 그 두 줄이 초보자에게 제일 필요한 안내다.
+     세로가 짧은 기기에서만 줄어든다. */
+  flex: none;
+  height: 190px;
+  max-height: 34vh;
   border-radius: var(--r-xl);
   overflow: hidden;
   background: var(--surface-2);
@@ -289,7 +373,9 @@
   animation: pop var(--dur-slow) var(--ease-pop);
 }
 .boss-banner.on,
-.bonus-banner.on { display: block; }
+.bonus-banner.on { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.boss-banner b,
+.bonus-banner b { font-family: var(--font-num); font-size: var(--t-lg); font-weight: 700; }
 .bonus-banner { background: var(--mint); color: var(--on-mint); }
 .boss-banner { background: var(--hot); color: var(--on-hot); }
 

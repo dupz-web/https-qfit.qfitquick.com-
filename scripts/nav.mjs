@@ -69,7 +69,10 @@ await page.evaluate(() => {
   if (t && t.checked) t.click();
 });
 await page.click('#play-btn');
-await page.waitForTimeout(6400); // 미리보기 3.2초 + 카운트다운 약 2초
+// 미리보기는 저절로 넘어가지 않는다(설계 06) — 시작을 누른다
+await page.waitForTimeout(700);
+await page.click('#preview-start-btn');
+await page.waitForTimeout(2600); // 카운트다운 3-2-1
 
 now = await active();
 const barHidden = await page.evaluate(() => {

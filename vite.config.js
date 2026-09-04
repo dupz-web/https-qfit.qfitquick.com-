@@ -1,10 +1,15 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
+import { readFileSync } from 'node:fs';
 
 const ROOT = path.resolve(import.meta.dirname);
+// 설정 화면 맨 아래에 찍히는 판 번호. package.json 한 곳에서만 정한다 —
+// 코드에 손으로 적으면 배포마다 고쳐야 하고, 한 번 잊으면 거짓말을 시작한다.
+const PKG_VERSION = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
 
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(PKG_VERSION) },
   plugins: [
     // 서비스 워커를 빌드가 만든다.
     //
